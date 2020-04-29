@@ -8,18 +8,8 @@ from jukebox.utils.audio_utils import save_wav
 from jukebox.make_models import make_model
 from jukebox.align import get_alignment
 from jukebox.save_html import save_html
+from jukebox.utils.sample_utils import split_batch, get_starts
 import fire
-
-def split_batch(obj, n_samples, split_size):
-    n_passes = (n_samples + split_size - 1) // split_size
-    if isinstance(obj, t.Tensor):
-        return t.split(obj, split_size, dim=0)
-    elif isinstance(obj, list):
-        return list(zip(*[t.split(item, split_size, dim=0) for item in obj]))
-    elif obj is None:
-        return [None] * n_passes
-    else:
-        raise TypeError('Unknown input type')
 
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):
@@ -86,10 +76,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 # Sample total_length tokens at level=level with hop_length=hop_length
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
     if total_length >= prior.n_ctx:
-        for start in range(0, total_length - prior.n_ctx + hop_length, hop_length):
-            if start + prior.n_ctx >= total_length:
-                # Last hop could be smaller
-                start = total_length - prior.n_ctx
+        for start in get_starts(total_length, prior.n_ctx, hop_length):
             zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
     else:
         zs = sample_partial_window(zs, labels, sampling_kwargs, level, prior, total_length, hps)
