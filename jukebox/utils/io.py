@@ -1,5 +1,6 @@
 import numpy as np
 import av
+import soundfile
 
 def get_duration_sec(file, cache=False):
     try:
@@ -15,34 +16,7 @@ def get_duration_sec(file, cache=False):
                 f.write(str(duration) + '\n')
         return duration
 
-def load_pyav_basic(file):
-    # mono = sr = None, ie load default channels and sr
-    container = av.open(file)
-    audio = container.streams.get(audio=0)[0]
-    frames = [frame.to_ndarray(format='fltp') for frame in container.decode(audio=0)]
-    sig = np.concatenate(frames, axis=-1)
-    return sig, audio.sample_rate
-
-def load_pyav_maxdnp(file):
-    # Loads at native sr, stereo channels and max duration
-    container = av.open(file)
-    audio = container.streams.get(audio=0)[0]
-    duration = int(audio.duration * float(audio.time_base) * audio.sample_rate) # Use units of time_out ie 1/sr for returning
-    sig = np.zeros((2, duration), dtype=np.float32)
-    total_read = 0
-    for frame in container.decode(audio=0):
-        frame = frame.to_ndarray(format='fltp') # Convert to floats and not int16
-        read = frame.shape[-1]
-        if total_read + read > duration:
-            read = duration - total_read
-        sig[:, total_read:total_read + read] = frame[:, :read]
-        total_read += read
-        if total_read == duration:
-            break
-    assert total_read <= duration, f'Expected {duration} frames, got {total_read}'
-    return sig, audio.sample_rate
-
-def load_pyav(file, sr, offset, duration, resample=True, approx=False, time_base='samples', check_duration=True):
+def load_audio(file, sr, offset, duration, resample=True, approx=False, time_base='samples', check_duration=True):
     if time_base == 'sec':
         offset = offset * sr
         duration = duration * sr
@@ -81,6 +55,11 @@ def load_pyav(file, sr, offset, duration, resample=True, approx=False, time_base
     assert total_read <= duration, f'Expected {duration} frames, got {total_read}'
     return sig, sr
 
+def save_wav(fname, aud, sr):
+    # clip before saving?
+    aud = t.clamp(aud, -1, 1).cpu().numpy()
+    for i in list(range(aud.shape[0])):
+        soundfile.write(f'{fname}/item_{i}.wav', aud[i], samplerate=sr, format='wav')
 
 def test_simple_loader():
     import librosa
@@ -101,7 +80,7 @@ def test_simple_loader():
 
     files = librosa.util.find_files('/root/data/', ['mp3', 'm4a', 'opus'])
     print(files[:10])
-    loader = load_pyav
+    loader = load_sound
     print("Loader", loader.__name__)
     x = t.randn(2, 2).cuda()
     x = load(files[0], loader)
