@@ -2,8 +2,9 @@ import os
 import sys
 import subprocess
 from time import time
+from urllib.request import urlretrieve
 
-def download(gs_path, local_path, async_download=False):
+def gs_download(gs_path, local_path, async_download=False):
     args = ['gsutil',
             '-o', 'GSUtil:parallel_thread_count=1',
             '-o', 'GSUtil:sliced_object_download_max_components=8',
@@ -14,7 +15,7 @@ def download(gs_path, local_path, async_download=False):
         subprocess.call(args)
 
 
-def upload(local_path, gs_path, async_upload=False):
+def gs_upload(local_path, gs_path, async_upload=False):
     # NOTE: Download and upload have differ -o flags.
     # We also use -n to prevent clobbering checkpoints by mistake
     assert not local_path.startswith("gs://")
@@ -27,6 +28,9 @@ def upload(local_path, gs_path, async_upload=False):
     else:
         subprocess.call(args)
 
+def download(gs_path, local_path):
+    remote_path = gs_path.replace("gs://", "https://storage.googleapis.com/")
+    urlretrieve(remote_path, local_path)
 
 def ls(regex):
     outputs = subprocess.check_output(['gsutil', 'ls', regex]).decode(sys.stdout.encoding)
