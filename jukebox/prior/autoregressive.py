@@ -16,6 +16,12 @@ def get_normal(*shape, std=0.01):
 def roll(x, n):
     return t.cat((x[:, -n:], x[:, :-n]), dim=1)
 
+def split_chunks(length, chunk_size):
+    n_passes = (length + chunk_size - 1) // chunk_size
+    chunk_sizes = [*[chunk_size] * (n_passes - 1), (length - 1) % chunk_size + 1]
+    assert sum(chunk_sizes) == length
+    return chunk_sizes
+
 class PositionEmbedding(nn.Module):
     def __init__(self, input_shape, width, init_scale=1.0, pos_init=False):
         super().__init__()
@@ -275,25 +281,27 @@ class ConditionalAutoregressive2D(nn.Module):
             if get_preds:
                 preds = []
 
+            # Fill up key/value cache for past context by runing forward pass.
+            # We do so in chunks instead of doing the whole past in one forward pass to reduce max memory usage.
             if chunk_size is None:
                 chunk_size = len(xs)
-            assert len(xs) % chunk_size == 0, f'expected {len(xs)} to be divisible by {chunk_size}'
-            n_chunks = len(xs)//chunk_size
+            #assert len(xs) % chunk_size == 0, f'expected {len(xs)} to be divisible by {chunk_size}'
+            chunk_sizes = split_chunks(len(xs), chunk_size)
             x_primes = []
             start = 0
             x = None
-            for _ in get_range(range(n_chunks)):
+            for current_chunk_size in get_range(chunk_sizes):
                 xs_prime, conds_prime = [], []
-                for sample_t in range(start, start + chunk_size):
+                for sample_t in range(start, start + current_chunk_size):
                     x_prime, cond_prime = self.get_emb(sample_t, n_samples, x, x_cond, y_cond)
                     x = xs[sample_t]
                     xs_prime.append(x_prime)
                     conds_prime.append(cond_prime)
-                start = start + chunk_size
+                start = start + current_chunk_size
 
                 x_prime, cond_prime = t.cat(xs_prime, dim=1), t.cat(conds_prime, dim=1)
-                assert x_prime.shape == (n_samples, chunk_size, self.width)
-                assert cond_prime.shape == (n_samples, chunk_size, self.width)
+                assert x_prime.shape == (n_samples, current_chunk_size, self.width)
+                assert cond_prime.shape == (n_samples, current_chunk_size, self.width)
                 del xs_prime
                 del conds_prime
                 if not get_preds:
@@ -303,7 +311,7 @@ class ConditionalAutoregressive2D(nn.Module):
                 if get_preds:
                     if self.add_cond_after_transformer:
                         x_prime = x_prime + cond_prime
-                    assert x_prime.shape == (n_samples, chunk_size, self.width)
+                    assert x_prime.shape == (n_samples, current_chunk_size, self.width)
                     del cond_prime
                     x_primes.append(x_prime)
                 else:
@@ -405,6 +413,7 @@ if __name__ == '__main__':
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     setup_dist_from_mpi(port=29600)
     test_cases = [
+        ((6144,), 384, 64, 2, 23),
         ((6144,), 384, 64, 2, 8),
         ((8192,), 512, 128, 2, 16),
     ]
