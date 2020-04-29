@@ -138,6 +138,8 @@ def save_samples(model, device, hps):
     from jukebox.lyricdict import poems, gpt_2_lyrics
     vqvae, priors = make_model(model, device, hps)
 
+    assert hps.sample_length//priors[-2].raw_to_tokens >= priors[-2].n_ctx, f"Upsampling needs atleast one ctx in get_z_conds. Please choose a longer sample length"
+
     total_length = hps.total_sample_length_in_seconds * hps.sr
     offset = 0
     metas = [dict(artist = "Alan Jackson",
@@ -161,6 +163,12 @@ def save_samples(model, device, hps):
              dict(artist="Ella Fitzgerald",
                   genre="Jazz",
                   lyrics=gpt_2_lyrics['count'],
+                  total_length=total_length,
+                  offset=offset,
+                  ),
+             dict(artist="Celine Dion",
+                  genre="Pop",
+                  lyrics=gpt_2_lyrics['darkness'],
                   total_length=total_length,
                   offset=offset,
                   ),

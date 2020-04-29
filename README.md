@@ -33,19 +33,11 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 # Sampling
 To sample, run the following command. Model can be `5b`, `5b_lyrics`, `1b_lyrics`
 ``` 
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_length 1048576 --sr 44100 --n_samples 3 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_length_in_seconds 24 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 3 --hop_fraction 0.5,0.5,0.125
 ```
 ``` 
-python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length 786432 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length_in_seconds 24 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
 ```
-
-The length of the generated raw audio is `sample_length/sr` seconds, where sr = 44100 KHz for our VQ-VAE.
-For a longer sample, just increase sample length, for example:
-
-``` 
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b_2x --levels 3 --sample_length 2097152 --sr 44100 --n_samples 12 --hop_fraction 0.5,0.5,0.125
-```
-We choose sample_length so that they are a perfect multiple of `n_ctx` at the top. 
 
 On a V100, to generate a single ctx at each level, it should take approximately 
 - 12 min for the 5b model top level (1 ctx = 24 sec of music)
@@ -62,7 +54,9 @@ To train a small vqvae, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend
 ```
-Here, {audio_files_dir} is the directory in which you can put the audio files for your dataset. The above trains a two-level VQ-VAE with downs_t = (5,3), and strides_t = (2, 2) meaning we downsample the audio by 2^5 = 32X to get the first level of codes, and 2^8 = 256X to get the second level codes.  Checkpoints are stored in the `logs` folder. You can monitor the training by running Tensorboard
+Here, {audio_files_dir} is the directory in which you can put the audio files for your dataset. The above trains a two-level VQ-VAE with downs_t = (5,3), and strides_t = (2, 2) meaning we downsample the audio by 2^5 = 32X to get the first level of codes, and 2^8 = 256X to get the second level codes.  
+sample_length is to be set so that after downsampling by the corresponding amount for that level, the tokens match the n_ctx of the prior hps.
+Checkpoints are stored in the `logs` folder. You can monitor the training by running Tensorboard
 ```
 tensorboard --logdir logs
 ```
