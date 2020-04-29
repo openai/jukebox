@@ -52,12 +52,13 @@ class VQVAE(nn.Module):
         self.strides_t = strides_t
 
         pow_w = calculate_strides(strides_t, downs_t)
+        self.hop_lengths = np.cumprod(pow_w)
         if multipliers is None:
             self.multipliers = [1] * levels
         else:
             assert len(multipliers) == levels, "Invalid number of multipliers"
             self.multipliers = multipliers
-        self.z_shapes = z_shapes = [(x_shape[0] // np.prod(pow_w[:i]),) for i in range(1,levels+1)]
+        self.z_shapes = z_shapes = [(x_shape[0] // self.hop_lengths[level],) for level in range(levels)]
         self.levels = levels
 
         def _block_kwargs(level):
