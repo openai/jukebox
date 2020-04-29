@@ -45,6 +45,7 @@ class VQVAE(nn.Module):
                  multipliers=None, use_bottleneck=True, **block_kwargs):
         super().__init__()
 
+        self.sample_length = input_shape[0]
         x_shape, x_channels = input_shape[:-1], input_shape[-1]
         self.x_shape = x_shape
 

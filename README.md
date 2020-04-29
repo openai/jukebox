@@ -39,11 +39,13 @@ python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_
 python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length 786432 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
 ```
 
-Here sample_length is chosen so that we get a single n_ctx (8192 for 5b model, 6144 for 1b_model, VQ-VAE downsampling is 128X) of tokens at the top-level, however you can choose longer sample_lengths to generate longer samples. For example, for a 2X longer sample, run
+The length of the generated raw audio is `sample_length/sr` seconds, where sr = 44100 KHz for our VQ-VAE.
+For a longer sample, just increase sample length, for example:
+
 ``` 
 python jukebox/sample.py --model=5b_lyrics --name=sample_5b_2x --levels 3 --sample_length 2097152 --sr 44100 --n_samples 12 --hop_fraction 0.5,0.5,0.125
 ```
-The length of the generated raw audio is `sample_length/sr` seconds, where sr = 44100 KHz for our VQ-VAE.
+We choose sample_length so that they are a perfect multiple of `n_ctx` at the top. 
 
 On a V100, to generate a single ctx at each level, it should take approximately 
 - 12 min for the 5b model top level (1 ctx = 24 sec of music)

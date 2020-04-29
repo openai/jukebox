@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import torch as t
 
 from jukebox.hparams import Hyperparams
@@ -65,6 +66,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     max_batch_size = sampling_kwargs['max_batch_size']
     del sampling_kwargs['max_batch_size']
 
+
     z_list = split_batch(z, n_samples, max_batch_size)
     z_conds_list = split_batch(z_conds, n_samples, max_batch_size)
     y_list = split_batch(y, n_samples, max_batch_size)
@@ -83,8 +85,14 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 
 # Sample total_length tokens at level=level with hop_length=hop_length
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
-    for start in range(0, total_length - prior.n_ctx + hop_length, hop_length):
-        zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+    if total_length >= prior.n_ctx:
+        for start in range(0, total_length - prior.n_ctx + hop_length, hop_length):
+            if start + prior.n_ctx >= total_length:
+                # Last hop could be smaller
+                start = total_length - prior.n_ctx
+            zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+    else:
+        zs = sample_partial_window(zs, labels, sampling_kwargs, level, prior, total_length, hps)
     return zs
 
 # Sample multiple levels
@@ -96,6 +104,7 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         empty_cache()
 
         # Set correct total_length, hop_length, labels and sampling_kwargs for level
+        assert hps.sample_length % prior.raw_to_tokens == 0, f"Expected sample_length {hps.sample_length} to be multiple of {prior.raw_to_tokens}"
         total_length = hps.sample_length//prior.raw_to_tokens
         hop_length = int(hps.hop_fraction[level]*prior.n_ctx)
         zs = sample_level(zs, labels[level], sampling_kwargs[level], level, prior, total_length, hop_length, hps)
@@ -142,7 +151,7 @@ def save_samples(model, device, hps):
     from jukebox.lyricdict import poems, gpt_2_lyrics
     vqvae, priors = make_model(model, device, hps)
 
-    total_length = 214 * hps.sr
+    total_length = hps.total_sample_length_in_seconds * hps.sr
     offset = 0
     metas = [dict(artist = "Alan Jackson",
                 genre = "Country",
