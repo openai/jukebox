@@ -1,0 +1,400 @@
+/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+// Defines a proto3-based REST API that the HParams web-component of the plugin
+// would use to read data from a hyperparameter-tuning experiment.
+// This file defines the message types (resources) used
+// to pass information into and out of the API methods. These messages will be
+// transmitted using proto3 native JSON encoding. See http_api.md for a
+// description of the actual HTTP API.
+
+// General note: in what follows we use the field 'name' of a message to
+// stores its id. We avoid calling this field 'id' since it is a reserved word
+// in Python, as well as to be more compliant with the API style guide
+// detailed in https://cloud.google.com/apis/design/.
+
+// IMPORTANT: If you change any of the messages here, make sure to also update
+// api.d.ts accordingly.
+
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+
+package tensorboardX.hparam;
+
+// Represents a single experiment.
+// An experiment consists of multiple "sessions". Typically, in each session
+// a model is trained for a given set of hyperparameter values. In each session
+// a training program may generate one or more series of real numbers--each
+// containing the evaluation of some metric on the model at different training
+// steps.
+//
+// Note that Sessions can consist of multiple Tensorboard "runs", since in
+// a distributed Tensorflow deployment, training can be accomplished using
+// several cooporating processes, each one emitting Summary data to a different
+// log directory or run. For example, in a single session one process could
+// periodically compute the loss on the validation set, and another could
+// compute the loss on the training set.
+// NEXT_TAG: 7
+message Experiment {
+  // -- Experiments are scoped by a global name.
+  // Currently, Tensorboard supports displaying data for a single experiment.
+  string name = 6;
+
+  // A description. May contain markdown.
+  string description = 1;
+
+  // An id for the owning user or group.
+  string user = 2;
+
+  // The time the experiment was created. In seconds since the UNIX epoch.
+  double time_created_secs = 3;
+
+  // Information about each hyperparameter used in the experiment.
+  repeated HParamInfo hparam_infos = 4;
+
+  // Information about each metric used in the experiment.
+  repeated MetricInfo metric_infos = 5;
+}
+
+// NEXT_TAG: 7
+message HParamInfo {
+  // An id for the hyperparameter.
+  string name = 1;
+
+  // A string used to display the hyperparameter in the UI. If empty, the UI
+  // will display the 'name' field.
+  string display_name = 2;
+
+  // A description. May contain markdown.
+  string description = 3;
+
+  // The data type of this hyperparameter.
+  DataType type = 4;
+
+  // Specifies the set of values this hyperparameter can hold. The UI assumes
+  // every instance of this hyperparameter will hold a value from this set. It
+  // is used by the UI to allow filtering so that only session groups (see
+  // below) whose associated hyperparameter value "passes" the filter are
+  // displayed. If this is not populated, the domain is assumed to be the
+  // entire domain of the type of the hyperparameter.
+  oneof domain {
+    // A discrete set of the values this hyperparameter can hold.
+    google.protobuf.ListValue domain_discrete = 5;
+    // Numeric data type only. The (real) interval from which values of this
+    // hyperparameter are taken.
+    Interval domain_interval = 6;
+  }
+}
+
+enum DataType {
+  DATA_TYPE_UNSET = 0;
+  DATA_TYPE_STRING = 1;
+  DATA_TYPE_BOOL = 2;
+  DATA_TYPE_FLOAT64 = 3;
+}
+
+// Represents the closed interval [min_value, max_value] of the real line.
+// NEXT_TAG: 3
+message Interval {
+  double min_value = 1;
+  double max_value = 2;
+}
+
+// NEXT_TAG: 3
+message MetricName {
+  // An identifier for a metric. A metric is a real-valued function of the
+  // model. The UI can plot metrics for a session evaluated on the model at
+  // different training steps.
+  //
+  // We identify a metric by a (group, tag) pair of strings. The UI treats
+  // both of these as opaque strings. The only requirement is that the pair
+  // uniquely identifies a metric in the experiment.
+  //
+  // We use a pair so the UI could allow the user to group metrics for a
+  // single session by either group or tag to be displayed in the same chart.
+  // For instance, one can set the metric group to correspond to the dataset
+  // on which the model was evaluated, and the UI can then display different
+  // metrics describing the same underlying computation and using different
+  // datasets, on the same chart.
+  //
+  // When exporting summaries from Tensorflow, in a typical setup, a
+  // training session exports evaluations of metrics at different training steps
+  // as Scalar-plugin summaries--each having a run of the form
+  // "<session_base_log_dir>/<sub_dir>", and some associated tag. The same
+  // metric for different sessions would use the same sub_dir and tag, but
+  // would have a different session_base_log_dir. For example, a session
+  // computing two metrics: model loss on the validation set and model loss on
+  // the training set, can export these as scalar summaries with the tag "loss"
+  // and runs session_base_log_dir/validation and session_base_log_dir/training,
+  // respectively. In this setup, the 'group' field can be populated with
+  // the "sub_dir" associated with the metric, and the 'tag' field can be
+  // populated with the tag: "loss".
+  string group = 1;
+  string tag = 2;
+}
+
+// NEXT_TAG: 6
+message MetricInfo {
+  MetricName name = 1;
+
+  // A string used to display the metric in the UI. If empty, the UI
+  // will display the 'name' field.
+  string display_name = 3;
+
+  // A description. May contain markdown.
+  string description = 4;
+
+  // The dataset type (validation, training) on which the metric is computed.
+  DatasetType dataset_type = 5;
+}
+
+enum DatasetType {
+  DATASET_UNKNOWN = 0;
+  DATASET_TRAINING = 1;
+  DATASET_VALIDATION = 2;
+}
+
+// In some experiments, the user trains a model with the same set of
+// hyperparameters multiple times to get the distribution of metric
+// evaluations, when the computation (such as the training algorithm, or metric
+// evaluation) is non-deterministic. To make the UI aware of this, sessions
+// are partitioned into groups: each group consists of all training sessions
+// which share the same values for the hyperparameters. In experiments with no
+// repeated executions, each group consists of exactly one session.
+// NEXT_TAG: 6
+message SessionGroup {
+  string name = 1;
+
+  // Stores the hyperparameters for sessions within this group as a mapping
+  // from the hyperparameter name to its value.
+  map<string /* hparam name */, google.protobuf.Value> hparams = 2;
+
+  // A list of pairs (metric, value)--one for each metric in the experiment.
+  // The value denotes the evaluation of the corresponding metric on
+  // the model aggregated across the sessions in this group. The exact method
+  // of aggregation is specified in the comments of ListSessionGroupsRequest.
+  // Unfortunately, we can't store these as a map, since proto maps can't have
+  // message keys.
+  repeated MetricValue metric_values = 3;
+
+  // The sessions belonging to this group.
+  repeated Session sessions = 4;
+
+  // An optional link to a web page monitoring the session group.
+  string monitor_url = 5;
+}
+
+// NEXT_TAG: 5
+message MetricValue {
+  MetricName name = 1;
+
+  double value = 2;
+
+  // The training step at which this value is computed.
+  int32 training_step = 3;
+
+  // The wall time in seconds since UNIX epoch at which this value is computed.
+  double wall_time_secs = 4;
+}
+
+// NEXT_TAG: 8
+message Session {
+  // An id for the session. Unique within an experiment (not just the group).
+  string name = 1;
+
+  // In seconds since the UNIX epoch.
+  double start_time_secs = 2;
+
+  // In seconds since the UNIX epoch.
+  // May be 0 if unavailable or the session has not finished yet.
+  double end_time_secs = 3;
+
+  // May be STATUS_UNKNOWN if unavailable.
+  Status status = 4;
+
+  // A URI for a resource that will allow the user to reconstruct the model for
+  // this session. E.g., in Tensorflow this could point to a directory where the
+  // checkpoints are stored. Currently, this is treated opaquely by the UI
+  // and only displayed to the user as it is passed here.
+  string model_uri = 5;
+
+  // Stores each metric evaluation on the model at the current training step.
+  // Unfortunately, we can't store these as a map, since proto maps can't have
+  // message keys.
+  repeated MetricValue metric_values = 6;
+
+  // An optional link to a web page monitoring the session.
+  string monitor_url = 7;
+}
+
+// Represents the status of a Session.
+enum Status {
+  STATUS_UNKNOWN = 0;
+  STATUS_SUCCESS = 1;
+  STATUS_FAILURE = 2;
+  STATUS_RUNNING = 3;
+}
+
+// Parameters for a GetExperiment API call.
+// Each experiment is scoped by a unique global id.
+// NEXT_TAG: 2
+message GetExperimentRequest {
+  // REQUIRED
+  string experiment_name = 1;
+}
+
+// Parameters for a ListSessionGroups API call.
+// Computes a list of the current session groups allowing for filtering and
+// sorting by metrics and hyperparameter values. Returns a "slice" of
+// that list specified by start_index and slice_size.
+// NEXT_TAG: 8
+message ListSessionGroupsRequest {
+  string experiment_name = 6;
+
+  // Filters the set of sessions (from which the session groups are formed) to
+  // contain only these sessions whose status is contained in
+  // 'allowed_statuses'.
+  repeated Status allowed_statuses = 7;
+
+  // A list of ColParams messages--one for each "column" of a session group. A
+  // session group column contains either a metric evaluated at the current
+  // reported computation step or a hyperparameter value. In addition to
+  // 'regular' values, a column may take on a special 'missing-value' which
+  // denotes that the hyperparameter or metric is not available
+  // for the session group (for example, if the metric is not used in the
+  // group).
+  //
+  // The ColParams messages in the repeated field below configure filtering and
+  // sorting of the resulting collection of session groups. See the comments of
+  // the fields in the ColParam message below for more details.
+  repeated ColParams col_params = 1;
+
+  // Fields controlling how to aggregate metrics across sessions within a
+  // session group.
+  // If aggregation_type is AGGREGATION_AVG, each metric value of the
+  // session group is the average of the values of the metric across the
+  // sessions.
+  // Otherwise, the session group metric values are taken directly from a
+  // "representative" session in the group, selected as a session for which
+  // primary_metric takes on its minimum, maximum, or median value, as
+  // specified by the choice of aggregation_type (for median, if the number of
+  // sessions in the group is even, a session with a lower "middle" value is
+  // chosen as the representative session).
+  AggregationType aggregation_type = 2;
+
+  // See comment for 'aggregation_type' above.
+  MetricName aggregation_metric = 3;
+
+  // The next two parameters determine the "slice" of the full list of
+  // session groups--sorted and filtered by the parameters above--to return.
+  // The 0-based index of the first session group to return.
+  int32 start_index = 4;
+
+  // The number of session groups to return starting at the session group
+  // indexed by 'start_index'. The actual number of session groups returned
+  // is min{slice_size, total_size - start_index}, where
+  // total_size is the number of session groups in the full list
+  // sorted and filtered by the parameters above (if start_index > total_size
+  // no session groups are returned).
+  int32 slice_size = 5;
+}
+
+// Defines parmeters for a ListSessionGroupsRequest for a specific column.
+// See the comment for "ListSessionGroupsRequest" above for more details.
+// NEXT_TAG: 9
+message ColParams {
+  oneof name {
+    MetricName metric = 1;
+    string hparam = 2;
+  }
+
+  // Sorting.
+  // The final order of session groups in the response is defined by the sub
+  // collection of ColParams messages (out of the
+  // ListSessionGroupsRequest.col_params repeated field) whose 'order' field
+  // (below) is not ORDER_UNSPECIFIED. In each of the messages in this
+  // sub-collection, the next two fields specify the ordering of the values
+  // and missing_values in the associated column of the session group. The
+  // order of the ColParams messages themselves within the sub-collection
+  // determines the "significance" of the associated column as a sorting key:
+  // with the first being the primary sorting key, the second being the
+  // secondary sorting key, etc.
+  // Note: The 'session group name' is added as a least significant sorting
+  // key to the keys defined by the user, so the order in the response is always
+  // deterministic.
+  SortOrder order = 3;
+  // This field is ignored if order is ORDER_UNSPECIFIED.
+  // Otherwise, if true, missing values are ordered before every other value in
+  // the column; if false they are ordered after every other value in the
+  // column.
+  bool missing_values_first = 4;
+
+  // Filtering.
+  // The 'filter' oneof specifies a subset of the domain of the values a column
+  // may take. Only session groups with each of their column values belonging
+  // to this subset are included in the response. If this field is not
+  // specified, the subset is taken to be the entire column domain.
+  oneof filter {
+    // Only valid for string-valued hyperparameter columns. The subset is
+    // the set of all strings matching the regular expression stored
+    // in 'regexp' as a partial match (use '^<regexp>$' to have a full
+    // match against regexp).
+    string filter_regexp = 5;
+
+    // Only valid for numeric-valued columns. The subset is the given interval.
+    Interval filter_interval = 6;
+
+    // Valid for all data types. The subset is defined explicitly.
+    google.protobuf.ListValue filter_discrete = 7;
+  }
+  // Specifies whether to exclude session groups whose column value is missing
+  // from the response.
+  bool exclude_missing_values = 8;
+}
+
+enum SortOrder {
+  ORDER_UNSPECIFIED = 0;
+  ORDER_ASC = 1;
+  ORDER_DESC = 2;
+}
+
+enum AggregationType {
+  AGGREGATION_UNSET = 0;
+  AGGREGATION_AVG = 1;
+  AGGREGATION_MEDIAN = 2;
+  AGGREGATION_MIN = 3;
+  AGGREGATION_MAX = 4;
+}
+
+// See ListSessionGroups in http_api.md.
+// NEXT_TAG: 4
+message ListSessionGroupsResponse {
+  repeated SessionGroup session_groups = 1;
+
+  // Denotes the total number of session groups in the full filtered list.
+  // (Recall that this response may only be a slice).
+  // It is used by the UI to calculate total number of pages and can be
+  // set here to -1 to mean "unknown".
+  int32 total_size = 3;
+}
+
+// See ListMetricEvalsRequest in http_api.md.
+// NEXT_TAG: 4
+message ListMetricEvalsRequest {
+  string experiment_name = 3;
+  string session_name = 1;
+  MetricName metric_name = 2;
+}

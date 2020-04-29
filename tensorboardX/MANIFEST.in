@@ -1,0 +1,7 @@
+include HISTORY.rst
+include LICENSE
+include compile.sh
+recursive-include tensorboardX/proto *
+recursive-exclude test *
+recursive-exclude examples *
+recursive-include tensorboardX/beholder *

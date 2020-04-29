@@ -1,0 +1,75 @@
+/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+// Defines protos for storing a hypertuning experiment data inside Summary tags.
+//
+// A hypertuning-experiment data consists of metadata that's constant
+// throughout the experiment and evolving metric data for each training session
+// in the experiment. The HParams plugin assumes the following organization of
+// this entire data set. Experiment metadata is recorded in the empty run in a
+// tag (named by the Python constant) metadata.EXPERIMENT_TAG. Within the
+// experiment, for a session named by <session_name> its metadata is recorded
+// in the run <session_name> in the tags metadata.SESSION_START_INFO and
+// metadata.SESSION_END_INFO. Finally, the session's metric data for a metric
+// with a (<group>, <tag>) name (see MetricName in api.proto), is recorded
+// in a Scalar-plugin summary with tag <tag> in the run <session_name><group>.
+
+syntax = "proto3";
+
+import "tensorboardX/proto/api.proto";
+import "google/protobuf/struct.proto";
+
+package tensorboardX.hparam;
+
+// HParam summaries created by `tensorboard.plugins.hparams.summary`
+// module will include `SummaryMetadata` whose `plugin_data` field has
+// as `content` a serialized HParamsPluginData message.
+message HParamsPluginData {
+  // The version of the plugin data schema.
+  int32 version = 1;
+  oneof data {
+    Experiment experiment = 2;
+    SessionStartInfo session_start_info = 3;
+    SessionEndInfo session_end_info = 4;
+  }
+}
+
+message SessionStartInfo {
+  // A map describing the hyperparameter values for the session.
+  // Maps each hyperparameter name to its value.
+  // Currently only scalars are supported.
+  map<string, google.protobuf.Value> hparams = 1;
+
+  // A URI for where checkpoints are saved.
+  string model_uri = 2;
+
+  // An optional URL to a website monitoring the session.
+  string monitor_url = 3;
+
+  // The name of the session group containing this session. If empty, the
+  // group name is taken to be the session id (so this session is the only
+  // member of its group).
+  string group_name = 4;
+
+  // The time the session started in seconds since epoch.
+  double start_time_secs = 5;
+}
+
+message SessionEndInfo {
+  Status status = 1;
+
+  // The time the session ended in seconds since epoch.
+  double end_time_secs = 2;
+}

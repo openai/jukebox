@@ -1,0 +1,96 @@
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+syntax = "proto3";
+
+package tensorboardX;
+
+
+/**
+ * Encapsulates information on a single chart. Many charts appear in a category.
+ */
+message Chart {
+  // The title shown atop this chart. Optional. Defaults to 'untitled'.
+  string title = 1;
+
+  // The content of the chart. This depends on the type of the chart.
+  oneof content {
+    MultilineChartContent multiline = 2;
+    MarginChartContent margin = 3;
+  }
+}
+
+/**
+ * Encapsulates information on a single line chart. This line chart may have
+ * lines associated with several tags.
+ */
+message MultilineChartContent {
+  // A list of regular expressions for tags that should appear in this chart.
+  // Tags are matched from beginning to end. Each regex captures a set of tags.
+  repeated string tag = 1;
+}
+
+/**
+ * Encapsulates information on a single margin chart. A margin chart uses fill
+ * area to visualize lower and upper bounds that surround a value.
+ */
+message MarginChartContent {
+  /**
+   * Encapsulates a tag of data for the chart.
+   */
+  message Series {
+    // The exact tag string associated with the scalar summaries making up the
+    // main value between the bounds.
+    string value = 1;
+
+    // The exact tag string associated with the scalar summaries making up the
+    // lower bound.
+    string lower = 2;
+
+    // The exact tag string associated with the scalar summaries making up the
+    // upper bound.
+    string upper = 3;
+  }
+
+  // A list of data series to include within this margin chart.
+  repeated Series series = 1;
+}
+
+/**
+ * A category contains a group of charts. Each category maps to a collapsible
+ * within the dashboard.
+ */
+message Category {
+  // This string appears atop each grouping of charts within the dashboard.
+  string title = 1;
+
+  // Encapsulates data on charts to be shown in the category.
+  repeated Chart chart = 2;
+
+  // Whether this category should be initially closed. False by default.
+  bool closed = 3;
+}
+
+/**
+ * A layout encapsulates how charts are laid out within the custom scalars
+ * dashboard.
+ */
+message Layout {
+  // Version `0` is the only supported version.
+  int32 version = 1;
+
+  // The categories here are rendered from top to bottom.
+  repeated Category category = 2;
+}

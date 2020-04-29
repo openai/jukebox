@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package tensorboardX.mesh;
+
+// A MeshPluginData encapsulates information on which plugins are able to make
+// use of a certain summary value.
+message MeshPluginData {
+  enum ContentType {
+    UNDEFINED = 0;
+    VERTEX = 1;
+    FACE = 2;  // Triangle face.
+    COLOR = 3;
+  }
+
+  // Version `0` is the only supported version.
+  int32 version = 1;
+
+  // The name of the mesh summary this particular summary belongs to.
+  string name = 2;
+
+  // Type of data in the summary.
+  ContentType content_type = 3;
+
+  // JSON-serialized dictionary of ThreeJS classes configuration.
+  string json_config = 5;
+
+  // Shape of underlying data. Cache it here for performance reasons.
+  repeated int32 shape = 6;
+}

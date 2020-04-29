@@ -1,0 +1,604 @@
+electroclash;1
+acid rock;2
+christian metal;3
+pop rock;4
+gothic;5
+big beat;6
+psychedelic rock‎;7
+funk carioca;8
+bebop;9
+dance punk;10
+trad jazz;11
+romantic;12
+andean music;13
+volksmusik;14
+coldwave;15
+gospel blues;16
+italian folk;17
+disney;18
+dark wave‏‎;19
+powerviolence;20
+bachata;21
+soft rock;22
+s music"];23
+bubblegum dance;24
+western swing;25
+alternative country;26
+latin pop;27
+eurobeat;28
+n;29
+unblack metal;30
+surf;31
+nu-disco;32
+event;33
+classical;34
+nasheed;35
+jovem guarda;36
+british blues;37
+bossa nova;38
+detroit blues;39
+rock;40
+contemporary christian;41
+dark ambient;42
+noise rock;43
+axé;44
+soca;45
+dance-rock;46
+contemporary jazz;47
+appalachian folk;48
+humppa‎;49
+ambient;50
+funeral doom;51
+southern gospel;52
+video game‎;53
+hip hop;54
+glitch hop;55
+krautrock;56
+breakcore;57
+ska;58
+traditional folk;59
+psychedelic trance;60
+reggae‏‎;61
+noise pop;62
+drumstep;63
+house;64
+teen pop;65
+sea shanties;66
+junkanoo;67
+mandopop;68
+pre-war blues;69
+doom metal;70
+oi-punk;71
+swamp rock;72
+crunkcore;73
+rap rock;74
+roots;75
+country rap;76
+avant-garde;77
+cumbia;78
+glam metal;79
+groove metal;80
+electric blues;81
+new orleans rhythm and blues;82
+canadian hip hop;83
+freestyle;84
+deathgrind;85
+idm;86
+comedy rock;87
+art punk;88
+progg;89
+work songs;90
+art pop;91
+conjunto;92
+persian;93
+parody;94
+jazz-funk;95
+french hip hop;96
+spirituals;97
+african;98
+middle-eastern;99
+minimal;100
+ranchera;101
+industrial rock;102
+electro house;103
+celtic rock;104
+death doom;105
+grupera;106
+jazz fusion‎;107
+political folk;108
+christian punk;109
+rapcore;110
+j-pop;111
+mashup;112
+metalcore;113
+progressive country;114
+power noise;115
+hip house;116
+crossover thrash;117
+electropop‎;118
+psychedelic folk;119
+punk rock;120
+classic rock;121
+zydeco;122
+afrobeat;123
+salsa;124
+banda;125
+chill-out;126
+morna;127
+minnesang;128
+alternative metal;129
+djent;130
+african folk;131
+mambo;132
+sertanejo;133
+classic pop;134
+soul;135
+australian hip hop;136
+symphonic rock;137
+celtic punk;138
+synthpop‎;139
+europop;140
+funk;141
+jazz blues;142
+vocal trance;143
+celtic fusion;144
+industrial;145
+kirtan;146
+slowcore;147
+flamenco;148
+piano blues;149
+texas blues;150
+aggrotech;151
+steampunk;152
+opera;153
+folktronica;154
+klezmer;155
+nwobhm;156
+goregrind;157
+rac;158
+neo-psychedelia‏‎;159
+post-rock‎;160
+hard bop;161
+gypsy jazz;162
+new orleans blues;163
+doo-wop;164
+soul blues;165
+trap;166
+indietronica;167
+psychobilly;168
+euro disco;169
+neo-progressive rock;170
+canterbury;171
+freak folk;172
+midwest rap;173
+instrumental rock;174
+dance-pop;175
+avant-garde metal;176
+edm;177
+deep house;178
+progressive bluegrass;179
+rave;180
+australian folk;181
+comic opera;182
+sunshine pop;183
+gregorian chant;184
+psychedelic rock;185
+honky tonk;186
+rock 'n' roll;187
+television;188
+nintendocore;189
+jump blues;190
+roots reggae;191
+traditional bluegrass;192
+operatic pop;193
+skate punk;194
+reggaeton;195
+manele;196
+middle-eastern hip hop;197
+skiffle;198
+nsbm;199
+nu jazz;200
+disco;201
+horrorcore;202
+early music;203
+post-bop;204
+gothic rock;205
+crack rock steady;206
+easy listening;207
+psychedelic;208
+christian;209
+brutal death metal;210
+experimental rock;211
+modern classical‎;212
+drum and bass;213
+dark wave;214
+dubstep;215
+grunge;216
+christian hip hop;217
+latin jazz;218
+r&b;219
+s music", ;220
+free jazz;221
+experimental hip hop;222
+swing;223
+smooth jazz;224
+southern metal;225
+religious;226
+progressive death metal;227
+contemporary folk;228
+j-rock;229
+jazz;230
+hamburger schule;231
+teen pop‎;232
+crossover;233
+italo disco;234
+deathcore;235
+blues;236
+crunk;237
+jangle pop;238
+indian classical music;239
+big band;240
+proto-punk;241
+dirty blues;242
+garage punk;243
+extreme metal;244
+folk metal;245
+neo soul;246
+electric folk;247
+synthwave;248
+arena rock;249
+post-grunge;250
+indie rock;251
+acoustic blues;252
+native american;253
+progressive trance;254
+nu metal;255
+digital hardcore;256
+brazilian rock;257
+funky house;258
+symphonic black metal;259
+lounge music;260
+brega;261
+trance;262
+industrial metal;263
+austropop;264
+bhangra;265
+new wave;266
+neoclassical;267
+post-metal;268
+dub;269
+industrial metal‎;270
+irish folk;271
+deutschrock;272
+gypsy;273
+dark electro;274
+alternative hip hop;275
+mbaqanga;276
+swamp blues;277
+french pop;278
+tango;279
+rockabilly;280
+old-time music;281
+blues rock;282
+scottish folk;283
+indie folk;284
+nazi-punk;285
+deutschpunk;286
+piedmont blues;287
+beatbox;288
+worship;289
+heavy metal;290
+underground hip  hop;291
+mixed;292
+electro;293
+tropicalismo;294
+jazz fusion;295
+worldbeat;296
+hill country blues;297
+a cappella;298
+dixieland;299
+hi-nrg;300
+punk blues;301
+anti-folk;302
+east coast blues;303
+polka;304
+mod revival;305
+soundtrack/musical;306
+movie;307
+outlaw country;308
+rock against communism;309
+barbershop;310
+math rock;311
+avant-garde‎;312
+psychedelic pop;313
+synthpop;314
+post-punk‎;315
+queercore;316
+death metal;317
+political hip hop;318
+thrashcore;319
+acid house;320
+post-hardcore‎;321
+electro-industrial;322
+rio;323
+southern hip hop;324
+filk;325
+duranguense;326
+latin hip hop;327
+pop punk;328
+space rock;329
+j-rap;330
+deep house‎;331
+baroque pop;332
+chiptune;333
+heartland rock;334
+dancehall;335
+experimental pop;336
+adult contemporary‎;337
+boogie woogie;338
+country pop;339
+power pop;340
+west coast hip hop;341
+thrash metal;342
+avant-pop;343
+enka;344
+k-pop;345
+post-britpop;346
+vocalese;347
+volkslied;348
+reggae fusion;349
+funk rock;350
+tech house;351
+adult contemporary;352
+death 'n' roll;353
+russian rock;354
+latin rock;355
+folk punk;356
+west coast blues;357
+progressive black metal;358
+progressive metal;359
+cajun;360
+sophisti-pop;361
+rock 'n' roll‎;362
+post-punk;363
+symphonic metal;364
+beat;365
+alternative rock‎;366
+art rock;367
+bakersfield sound;368
+indie pop;369
+folk;370
+acid jazz;371
+dream pop;372
+pop-rap;373
+eurodance;374
+vaudeville;375
+louisiana blues;376
+baião;377
+downtempo;378
+jug band;379
+neo-psychedelia;380
+sufi;381
+medieval;382
+singer-songwriter‎;383
+outsider music;384
+pop-folk;385
+martial industrial;386
+samba;387
+alternative dance;388
+children's music‎;389
+anarcho-punk;390
+dark rock;391
+rock en español;392
+balearic beat;393
+electropunk;394
+urban contemporary;395
+ragtime;396
+british invasion;397
+bubblegum pop;398
+rap metal;399
+soundtrack/television;400
+blues revival;401
+reggae;402
+schlager;403
+dance band;404
+video game;405
+crust punk;406
+cabaret;407
+ska punk‎;408
+bolero;409
+canadian folk;410
+neofolk;411
+shoegazing;412
+acoustic;413
+modern classical;414
+swamp pop;415
+celtic;416
+futurepop;417
+g-funk;418
+norteño;419
+orchestral;420
+boogie rock;421
+tejano;422
+new age;423
+soul jazz;424
+cantopop;425
+progressive metalcore;426
+mathcore;427
+new rave;428
+neue deutsche welle;429
+delta blues;430
+lo-fi;431
+poetry;432
+hatecore;433
+chanson;434
+underground hip hop;435
+pirate metal;436
+trip hop;437
+fado;438
+americana;439
+hardcore hip hop;440
+post-industrial;441
+grime;442
+southern rock;443
+grindcore;444
+musical;445
+hard trance;446
+ska punk;447
+post-rock;448
+uk garage;449
+melodic metalcore;450
+black metal;451
+visual kei;452
+soundtrack;453
+axé‎;454
+hardcore punk;455
+western;456
+blackgaze;457
+christian rock;458
+technical death metal;459
+christian hardcore;460
+christmas;461
+breakbeat;462
+francophone;463
+choral;464
+progressive folk;465
+mystic folk;466
+melodic death metal;467
+horror punk;468
+country blues;469
+nederpop;470
+post-hardcore;471
+future garage;472
+techno;473
+swiss rock;474
+dance-pop‎;475
+electronicore;476
+post-punk revival;477
+glitch;478
+calypso;479
+ragga;480
+britpop;481
+rock opera;482
+cowpunk;483
+la confusion des genres;484
+alternative rock;485
+surf rock;486
+ballad;487
+latin;488
+contemporary r&b;489
+forró;490
+ethereal wave;491
+electro swing;492
+novelty;493
+funk melody;494
+punk cabaret;495
+symphonic metal‎;496
+pop;497
+paisley underground;498
+neue deutsche härte;499
+glam rock;500
+nerdcore hip hop;501
+bluegrass;502
+hardstyle;503
+happy hardcore;504
+baroque;505
+speed metal;506
+country;507
+electropop;508
+memphis blues;509
+pagan metal;510
+horror punk‏‎;511
+mariachi;512
+singer-songwriter;513
+children's music;514
+boogie;515
+gothic metal;516
+electronic rock;517
+emo;518
+gospel;519
+ebm;520
+roots rock;521
+vocal;522
+celtic folk;523
+electronic;524
+death  metal;525
+gabber;526
+deathrock;527
+experimental;528
+spoken word;529
+screamo;530
+finnish folk;531
+singer only;532
+new jack swing;533
+acid techno;534
+corrido;535
+english folk;536
+american folk;537
+raï;538
+drone doom;539
+hard rock;540
+piano rock;541
+hawaiian;542
+humppa;543
+east coast hip hop;544
+gypsy punk;545
+country rock;546
+jazz‎;547
+mpb;548
+harmonica blues;549
+melodic hardcore;550
+string band;551
+anime;552
+nu metalcore;553
+progressive  rock;554
+garage rock;555
+dance;556
+reggae rock;557
+contemporary christian‎;558
+sludge metal;559
+minimal techno;560
+folk rock;561
+drone music;562
+stoner rock;563
+speedcore;564
+chillwave;565
+riot grrrl;566
+chamber music;567
+cool jazz;568
+noise;569
+vocal jazz;570
+progressive rock;571
+afropop;572
+bro-country;573
+goa trance;574
+2-tone;575
+miami bass;576
+quiet storm;577
+pub rock;578
+power metal;579
+blue-eyed soul;580
+viking metal;581
+gangsta rap;582
+country pop‎;583
+exotica;584
+christian ska;585
+jam band;586
+chicago blues;587
+street punk;588
+funk metal;589
+rap  metal;590
+christian hymns;591
+classic female blues;592
+kizomba;593
+comedy;594
+dark cabaret;595
+french house;596
+progressive house;597
+african blues;598
+atmospheric black metal;599
+pop rock‎;600
+blackened death metal;601
+shibuya-kei;602
+electronica;603
+unknown;0

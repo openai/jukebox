@@ -1,0 +1,81 @@
+dist: xenial
+language: python
+python:
+  # We don't actually use the Travis Python, but this keeps it organized.
+  - "2.7"
+  - "3.6"
+
+env:
+  - PYTORCH_VER="torch"
+  - PYTORCH_VER="torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+
+matrix:
+  allow_failures:
+    - env: PYTORCH_VER="torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+
+install:
+  - export MPLBACKEND=Agg
+  - export CODECOV_TOKEN="26239910-fe4e-463d-aa3d-e662e9bf39ef"
+
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - export BOTO_CONFIG=/dev/null  # https://github.com/travis-ci/travis-ci/issues/7940
+  - export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # Replace dep1 dep2 ... with your dependencies
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - source activate test-environment
+  - which python
+  - pip install future
+  - pip install chainer -q
+  - pip install torchvision==0.2.1 -q
+  - pip uninstall torch -y
+  - pip install $PYTORCH_VER
+  - pip install moviepy==0.2.3.2 -q
+  - pip install matplotlib -q
+  - pip install requests -q
+  - pip install codecov
+  - pip install onnx
+  - pip install boto3
+  - pip install moto
+  - pip install visdom
+  - pip install tb-nightly
+  - pip install crc32c
+  - pip install protobuf==3.8.0
+  - conda install ffmpeg
+  - conda list
+  - python -c "import imageio; imageio.plugins.ffmpeg.download()"
+  - pip install --upgrade pytest-cov flake8
+  - python setup.py install
+
+script:
+  - visdom &
+  - sleep 5
+  - python -c "import visdom; v = visdom.Visdom()"
+  - py.test --cov=tensorboardX tests/
+  - python examples/demo.py
+  - python examples/demo_graph.py
+  - python examples/demo_embedding.py
+  - python examples/demo_custom_scalars.py
+  - python examples/demo_multiple_embedding.py
+  - python examples/demo_purge.py
+  - python examples/demo_matplotlib.py
+  - pip uninstall -y tensorboardX
+  - pip install tensorboardX
+  - pytest
+
+after_success:
+  - codecov

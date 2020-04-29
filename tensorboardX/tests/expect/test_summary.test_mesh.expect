@@ -1,0 +1,105 @@
+value {
+  tag: "my_mesh_1"
+  tensor {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 4
+      }
+      dim {
+        size: 3
+      }
+    }
+    float_val: 1.0
+    float_val: 1.0
+    float_val: 1.0
+    float_val: -1.0
+    float_val: -1.0
+    float_val: 1.0
+    float_val: 1.0
+    float_val: -1.0
+    float_val: -1.0
+    float_val: -1.0
+    float_val: 1.0
+    float_val: -1.0
+  }
+  metadata {
+    plugin_data {
+      plugin_name: "mesh"
+      content: "\022\007my_mesh\030\001*\004null2\003\001\004\003"
+    }
+  }
+}
+value {
+  tag: "my_mesh_2"
+  tensor {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 4
+      }
+      dim {
+        size: 3
+      }
+    }
+    float_val: 0.0
+    float_val: 2.0
+    float_val: 3.0
+    float_val: 0.0
+    float_val: 3.0
+    float_val: 1.0
+    float_val: 0.0
+    float_val: 1.0
+    float_val: 2.0
+    float_val: 1.0
+    float_val: 3.0
+    float_val: 2.0
+  }
+  metadata {
+    plugin_data {
+      plugin_name: "mesh"
+      content: "\022\007my_mesh\030\002*\004null2\003\001\004\003"
+    }
+  }
+}
+value {
+  tag: "my_mesh_3"
+  tensor {
+    dtype: DT_FLOAT
+    tensor_shape {
+      dim {
+        size: 1
+      }
+      dim {
+        size: 4
+      }
+      dim {
+        size: 3
+      }
+    }
+    float_val: 255.0
+    float_val: 0.0
+    float_val: 0.0
+    float_val: 0.0
+    float_val: 255.0
+    float_val: 0.0
+    float_val: 0.0
+    float_val: 0.0
+    float_val: 255.0
+    float_val: 255.0
+    float_val: 0.0
+    float_val: 255.0
+  }
+  metadata {
+    plugin_data {
+      plugin_name: "mesh"
+      content: "\022\007my_mesh\030\003*\004null2\003\001\004\003"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+proto_src/
+protoc-*.zip
+protoc/
+__pycache__
+docs/_*
+build
+dist
+*.egg-info
+runs/*
+*.pyc
