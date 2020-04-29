@@ -383,6 +383,7 @@ DEFAULTS["sample"] = Hyperparams(
     selected_artists='',
     temp_top=1.0,
     temp_rest=0.99,
+    sample_length_in_seconds=24,
     total_sample_length_in_seconds=240,
 )
 

@@ -9,14 +9,21 @@ from jukebox.utils.torch_utils import assert_shape, empty_cache
 from jukebox.hparams import Hyperparams
 from jukebox.make_models import make_model
 from jukebox.save_html import save_html
+from jukebox.utils.sample_utils import get_starts
 import fire
-
 
 def get_alignment(x, zs, labels, prior, fp16, hps):
     level = hps.levels - 1 # Top level used
     n_ctx, n_tokens = prior.n_ctx, prior.n_tokens
     z = zs[level]
     bs, total_length = z.shape[0], z.shape[1]
+    if total_length < n_ctx:
+        padding_length = n_ctx - total_length
+        z = t.cat([z, t.zeros(bs, n_ctx - total_length, dtype=z.dtype, device=z.device)], dim=1)
+        total_length = z.shape[1]
+    else:
+        padding_length = 0
+
     hop_length = int(hps.hop_fraction[level]*prior.n_ctx)
     n_head = prior.prior.transformer.n_head
     alignment_head, alignment_layer = prior.alignment_head, prior.alignment_layer
@@ -26,7 +33,7 @@ def get_alignment(x, zs, labels, prior, fp16, hps):
 
     prior.cuda()
     empty_cache()
-    for start in range(0, total_length - n_ctx + hop_length, hop_length):
+    for start in get_starts(total_length, n_ctx, hop_length):
         end = start + n_ctx
 
         # set y offset, sample_length and lyrics tokens
@@ -57,7 +64,6 @@ def get_alignment(x, zs, labels, prior, fp16, hps):
     prior.cpu()
     empty_cache()
 
-    t.save(dict(indices_hops=indices_hops, alignment_hops=alignment_hops), "alignments.pth.tar")
     # Combine attn for each hop into attn for full range
     # Use indices to place them into correct place for corresponding source tokens
     alignments = []
@@ -65,14 +71,14 @@ def get_alignment(x, zs, labels, prior, fp16, hps):
         # Note each item has different length lyrics
         full_tokens = labels['info'][item]['full_tokens']
         alignment = np.zeros((total_length, len(full_tokens) + 1))
-        for start in reversed(range(0, total_length - n_ctx + hop_length, hop_length)):
+        for start in reversed(get_starts(total_length, n_ctx, hop_length)):
             end = start + n_ctx
             alignment_hop = alignment_hops[start][item]
             indices = indices_hops[start][item]
             assert len(indices) == n_tokens
             assert alignment_hop.shape == (n_ctx, n_tokens)
             alignment[start:end,indices] = alignment_hop
-        alignment = alignment[:,:-1] # remove last index
+        alignment = alignment[:total_length - padding_length,:-1] # remove token padding, and last lyric index
         alignments.append(alignment)
     return alignments
 

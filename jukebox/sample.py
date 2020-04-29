@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import torch as t
 
 from jukebox.hparams import Hyperparams
@@ -7,18 +8,8 @@ from jukebox.utils.audio_utils import save_wav
 from jukebox.make_models import make_model
 from jukebox.align import get_alignment
 from jukebox.save_html import save_html
+from jukebox.utils.sample_utils import split_batch, get_starts
 import fire
-
-def split_batch(obj, n_samples, split_size):
-    n_passes = (n_samples + split_size - 1) // split_size
-    if isinstance(obj, t.Tensor):
-        return t.split(obj, split_size, dim=0)
-    elif isinstance(obj, list):
-        return list(zip(*[t.split(item, split_size, dim=0) for item in obj]))
-    elif obj is None:
-        return [None] * n_passes
-    else:
-        raise TypeError('Unknown input type')
 
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):
@@ -65,6 +56,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     max_batch_size = sampling_kwargs['max_batch_size']
     del sampling_kwargs['max_batch_size']
 
+
     z_list = split_batch(z, n_samples, max_batch_size)
     z_conds_list = split_batch(z_conds, n_samples, max_batch_size)
     y_list = split_batch(y, n_samples, max_batch_size)
@@ -83,8 +75,11 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 
 # Sample total_length tokens at level=level with hop_length=hop_length
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
-    for start in range(0, total_length - prior.n_ctx + hop_length, hop_length):
-        zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+    if total_length >= prior.n_ctx:
+        for start in get_starts(total_length, prior.n_ctx, hop_length):
+            zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+    else:
+        zs = sample_partial_window(zs, labels, sampling_kwargs, level, prior, total_length, hps)
     return zs
 
 # Sample multiple levels
@@ -96,6 +91,7 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         empty_cache()
 
         # Set correct total_length, hop_length, labels and sampling_kwargs for level
+        assert hps.sample_length % prior.raw_to_tokens == 0, f"Expected sample_length {hps.sample_length} to be multiple of {prior.raw_to_tokens}"
         total_length = hps.sample_length//prior.raw_to_tokens
         hop_length = int(hps.hop_fraction[level]*prior.n_ctx)
         zs = sample_level(zs, labels[level], sampling_kwargs[level], level, prior, total_length, hop_length, hps)
@@ -142,7 +138,9 @@ def save_samples(model, device, hps):
     from jukebox.lyricdict import poems, gpt_2_lyrics
     vqvae, priors = make_model(model, device, hps)
 
-    total_length = 214 * hps.sr
+    assert hps.sample_length//priors[-2].raw_to_tokens >= priors[-2].n_ctx, f"Upsampling needs atleast one ctx in get_z_conds. Please choose a longer sample length"
+
+    total_length = hps.total_sample_length_in_seconds * hps.sr
     offset = 0
     metas = [dict(artist = "Alan Jackson",
                 genre = "Country",
@@ -165,6 +163,12 @@ def save_samples(model, device, hps):
              dict(artist="Ella Fitzgerald",
                   genre="Jazz",
                   lyrics=gpt_2_lyrics['count'],
+                  total_length=total_length,
+                  offset=offset,
+                  ),
+             dict(artist="Celine Dion",
+                  genre="Pop",
+                  lyrics=gpt_2_lyrics['darkness'],
                   total_length=total_length,
                   offset=offset,
                   ),

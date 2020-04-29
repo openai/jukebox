@@ -28,7 +28,7 @@ def load_checkpoint(path):
         local_path = gs_path[5:]
         if dist.get_rank() % 8 == 0:
             print("Downloading from gce")
-            if not os.path.dirname(local_path):
+            if not os.path.exists(os.path.dirname(local_path)):
                 os.makedirs(os.path.dirname(local_path))
             if not os.path.exists(local_path):
                 download(gs_path, local_path)
@@ -66,6 +66,13 @@ def make_vqvae(hps, device='cuda'):
                         dilation_growth_rate=hps.dilation_growth_rate,
                         dilation_cycle=hps.dilation_cycle,
                         reverse_decoder_dilation=hps.vqvae_reverse_decoder_dilation)
+
+    if not hps.sample_length:
+        assert hps.sample_length_in_seconds != 0
+        downsamples = calculate_strides(hps.strides_t, hps.downs_t)
+        top_raw_to_tokens = np.prod(downsamples)
+        hps.sample_length = (hps.sample_length_in_seconds * hps.sr // top_raw_to_tokens) * top_raw_to_tokens
+        print(f"Setting sample length to {hps.sample_length} (i.e. {hps.sample_length/hps.sr} seconds) to be multiple of {top_raw_to_tokens}")
 
     vqvae = VQVAE(input_shape=(hps.sample_length,1), levels=hps.levels, downs_t=hps.downs_t, strides_t=hps.strides_t,
                   emb_width=hps.emb_width, l_bins=hps.l_bins,
@@ -171,7 +178,8 @@ def make_prior(hps, vqvae, device='cuda'):
 
 def make_model(model, device, hps, levels=None):
     vqvae, *priors = MODELS[model]
-    vqvae = make_vqvae(setup_hparams(vqvae, dict(sample_length=hps.sample_length)), device)
+    vqvae = make_vqvae(setup_hparams(vqvae, dict(sample_length=hps.get('sample_length', 0), sample_length_in_seconds=hps.get('sample_length_in_seconds', 0))), device)
+    hps.sample_length = vqvae.sample_length
     if levels is None:
         levels = range(len(priors))
     priors = [make_prior(setup_hparams(priors[level], dict()), vqvae, 'cpu') for level in levels]
