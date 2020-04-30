@@ -25,7 +25,7 @@ def load_checkpoint(path):
     restore = path
     if restore[:5] == 'gs://':
         gs_path = restore
-        local_path = gs_path[5:]
+        local_path = os.path.join(os.path.expanduser("~/.cache"), gs_path[5:])
         if dist.get_rank() % 8 == 0:
             print("Downloading from gce")
             if not os.path.exists(os.path.dirname(local_path)):
