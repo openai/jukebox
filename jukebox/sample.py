@@ -218,7 +218,7 @@ def save_samples(model, device, hps, sample_hps):
         raise ValueError(f'Unknown sample mode {mode}.')
 
 
-def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=6.0, port=29500, **kwargs):
+def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=12.0, port=29500, **kwargs):
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     rank, local_rank, device = setup_dist_from_mpi(port=port)
     hps = Hyperparams(**kwargs)
