@@ -116,26 +116,27 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         save_html(logdir, x, zs, labels[-1], alignments, hps)
     return zs
 
-# Ancestral sample
+# Generate ancestral samples given a list of artists and genres
 def ancestral_sample(labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors)))
     zs = [t.zeros(hps.n_samples,0,dtype=t.long, device='cuda') for _ in range(len(priors))]
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
-# Upsample
+# Upsample given already generated upper-level codes
 def upsample(zs, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors) - 1))
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
-# Primed sample
+# Prompt the model with raw audio input (dimension: NTC) and generate continuations
 def primed_sample(x, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors)))
     zs = priors[-1].encode(x, start_level=0, end_level=len(priors), bs_chunks=x.shape[0])
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
+# Load `duration` seconds of the given audio files to use as prompts
 def load_prompts(audio_files, duration, hps):
     xs = []
     for audio_file in audio_files:
@@ -149,6 +150,7 @@ def load_prompts(audio_files, duration, hps):
     x = x.to('cuda', non_blocking=True)
     return x
 
+# Generate and save samples, alignment, and webpage for visualization.
 def save_samples(model, device, hps, sample_hps):
     print(hps)
     from jukebox.lyricdict import poems, gpt_2_lyrics
