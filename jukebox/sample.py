@@ -135,8 +135,8 @@ def primed_sample(x, labels, sampling_kwargs, priors, hps):
 def load_prompt(audio_files, sr, duration):
     xs = []
     for audio_file in audio_files:
-        x, _ = load_audio(audio_file, sr=hps.sr, duration=duration)
-        x = sig.T.mean(1, keepdims=True)
+        x, _ = load_audio(audio_file, sr=sr, duration=duration, offset=0.0)
+        x = x.T.mean(1, keepdims=True)
         xs.append(x)
     return xs
 
@@ -204,8 +204,10 @@ def save_samples(model, device, hps, sample_hps):
         ancestral_sample(labels, sampling_kwargs, priors, hps)
     elif sample_hps.mode == 'primed':
         top_hop_length = vqvae.hop_lengths[-1]
-        duration = int(sample_hps.prompt_in_seconds * hps.sr) // top_hop_lenghth * top_hop_length
-        xs = load_prompt(sample_hps.audio_file, hps.sr, duration)
+        duration = int(sample_hps.prompt_length_in_seconds * hps.sr) // top_hop_length * top_hop_length
+        assert sample_hps.audio_file is not None
+        audio_files = sample_hps.audio_file.split(',')
+        xs = load_prompt(audio_files, hps.sr, duration)
         while len(xs) < hps.n_samples:
             xs.extend(xs)
         xs = xs[:hps.n_samples]
@@ -216,13 +218,11 @@ def save_samples(model, device, hps, sample_hps):
         raise ValueError(f'Unknown sample mode {mode}.')
 
 
-def run(model, mode='ancestral', audio_file=None, prompt_in_seconds=6.0, port=29500, **kwargs):
+def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=6.0, port=29500, **kwargs):
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     rank, local_rank, device = setup_dist_from_mpi(port=port)
     hps = Hyperparams(**kwargs)
-    if isinstance(audio_file, str):
-        audio_file = (audio_file,)
-    sample_hps = Hyperparams(dict(mode=mode, audio_file=audio_file, prompt_in_seconds=prompt_in_seconds))
+    sample_hps = Hyperparams(dict(mode=mode, audio_file=audio_file, prompt_length_in_seconds=prompt_length_in_seconds))
 
     with t.no_grad():
         save_samples(model, device, hps, sample_hps)
