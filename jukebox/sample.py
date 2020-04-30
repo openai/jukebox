@@ -104,7 +104,7 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         empty_cache()
 
         # Decode sample
-        x = priors[-1].decode(zs[level:], start_level=level)
+        x = priors[-1].decode(zs[level:], start_level=level, bs_chunks=zs[level].shape[0])
 
         logdir = f"{hps.name}/level_{level}"
         if not os.path.exists(logdir):
