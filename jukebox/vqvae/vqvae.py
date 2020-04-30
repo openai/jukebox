@@ -49,18 +49,16 @@ class VQVAE(nn.Module):
         x_shape, x_channels = input_shape[:-1], input_shape[-1]
         self.x_shape = x_shape
 
-        self.strides_t = strides_t
-
         self.downsamples = calculate_strides(strides_t, downs_t)
         self.hop_lengths = np.cumprod(self.downsamples)
+        self.z_shapes = z_shapes = [(x_shape[0] // self.hop_lengths[level],) for level in range(levels)]
+        self.levels = levels
+
         if multipliers is None:
             self.multipliers = [1] * levels
         else:
             assert len(multipliers) == levels, "Invalid number of multipliers"
             self.multipliers = multipliers
-        self.z_shapes = z_shapes = [(x_shape[0] // self.hop_lengths[level],) for level in range(levels)]
-        self.levels = levels
-
         def _block_kwargs(level):
             this_block_kwargs = dict(block_kwargs)
             this_block_kwargs["width"] *= self.multipliers[level]
@@ -122,7 +120,7 @@ class VQVAE(nn.Module):
             x_outs.append(x_out)
         return t.cat(x_outs, dim=0)
 
-    def encode(self, x, start_level=0, end_level=None):
+    def _encode(self, x, start_level=0, end_level=None):
         # Encode
         if end_level is None:
             end_level = self.levels
@@ -134,6 +132,16 @@ class VQVAE(nn.Module):
             xs.append(x_out[-1])
         zs = self.bottleneck.encode(xs)
         return zs[start_level:end_level]
+
+    def encode(self, x, start_level=0, end_level=None):
+        bs = x.shape[0]
+        x_chunks = t.chunk(x, bs, dim=0)
+        zs_list = []
+        for x_i in x_chunks:
+            zs_i = self._encode(x_i, start_level=start_level, end_level=end_level)
+            zs_list.append(zs_i)
+        zs = [t.cat(items, dim=0) for items in zip(*zs_list)]
+        return zs
 
     def sample(self, n_samples):
         zs = [t.randint(0, self.l_bins, size=(n_samples, *z_shape), device='cuda') for z_shape in self.z_shapes]
