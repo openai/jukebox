@@ -41,6 +41,8 @@ The above generates the first `sample_length_in_seconds` seconds of audio from a
 The samples decoded from each level are stored in `{name}/level_{level}`.
  You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`. Run `python -m http.server` and open the html through the server to see the lyrics animate as the song plays.  
 
+The `1b_lyrics`, `5b`, and `5b_lyrics` top-level priors take up 3.8 GB, 10.3 GB, and 11.5 GB, respectively. The peak memory usage to store transformer key, value cache is about 1 GB per sample. If you are having trouble with OOM issues, try `1b_lyrics` or decrease `--n_samples`.
+
 On a V100, it takes about 3 hrs to fully sample 20 seconds of music. Since this is a long time, it is recommended to use `n_samples > 1` so you can generate as many samples as possible in parallel. The 1B lyrics and upsamplers can process 16 samples at a time, while 5B can fit only up to 3. Since the vast majority of time is spent on upsampling, we recommend using a multiple of 3 less than 16 like `--n_samples 15` for `5b_lyrics`. This will make the top-level generate samples in groups of three while upsampling is done in one pass.
 
 If you want to prompt the model with your own creative piece or any other music, first save them as wave files and run
