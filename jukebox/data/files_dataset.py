@@ -4,7 +4,7 @@ import numpy as np
 import torch.distributed as dist
 from torch.utils.data import Dataset
 from jukebox.utils.dist_utils import print_all
-from jukebox.utils.load_pyav import get_duration_sec, load_pyav
+from jukebox.utils.io import get_duration_sec, load_audio
 from jukebox.data.labels import Labeller
 
 class FilesAudioDataset(Dataset):
@@ -76,7 +76,7 @@ class FilesAudioDataset(Dataset):
 
     def get_song_chunk(self, index, offset, test=False):
         filename, total_length = self.files[index], self.durations[index]
-        data, sr = load_pyav(filename, sr=self.sr, offset=offset, duration=self.sample_length)
+        data, sr = load_audio(filename, sr=self.sr, offset=offset, duration=self.sample_length)
         assert data.shape == (self.channels, self.sample_length), f'Expected {(self.channels, self.sample_length)}, got {data.shape}'
         if self.labels:
             artist, genre, lyrics = self.get_metadata(filename, test)
