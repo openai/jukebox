@@ -140,7 +140,7 @@ class VQVAE(nn.Module):
         for x_i in x_chunks:
             zs_i = self._encode(x_i, start_level=start_level, end_level=end_level)
             zs_list.append(zs_i)
-        zs = [t.cat(items, dim=0) for items in zip(*zs_list)]
+        zs = [t.cat(zs_level_list, dim=0) for zs_level_list in zip(*zs_list)]
         return zs
 
     def sample(self, n_samples):
