@@ -80,7 +80,7 @@ def test_simple_loader():
 
     files = librosa.util.find_files('/root/data/', ['mp3', 'm4a', 'opus'])
     print(files[:10])
-    loader = load_sound
+    loader = load_audio
     print("Loader", loader.__name__)
     x = t.randn(2, 2).cuda()
     x = load(files[0], loader)
