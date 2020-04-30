@@ -1,6 +1,7 @@
 import numpy as np
 import torch as t
 import torch.distributed as dist
+import soundfile
 import librosa
 from jukebox.utils.dist_utils import print_once
 
@@ -129,3 +130,15 @@ def log_magnitude_loss(x_in, x_out, hps, epsilon=1e-4):
     spec_in = t.log(spec(squeeze(x_in.float()), hps) + epsilon)
     spec_out = t.log(spec(squeeze(x_out.float()), hps) + epsilon)
     return t.mean(t.abs(spec_in - spec_out))
+
+def load_audio(file, sr, offset, duration):
+    # Librosa loads more filetypes than soundfile
+    return librosa.load(file, sr=sr, mono=False, offset=offset/sr, duration=duration/sr)
+
+def save_wav(fname, aud, sr):
+    # clip before saving?
+    aud = t.clamp(aud, -1, 1).cpu().numpy()
+    for i in list(range(aud.shape[0])):
+        soundfile.write(f'{fname}/item_{i}.wav', aud[i], samplerate=sr, format='wav')
+
+

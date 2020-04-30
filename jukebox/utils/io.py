@@ -1,6 +1,5 @@
 import numpy as np
 import av
-import soundfile
 import torch as t
 import torch.distributed as dist
 
@@ -56,12 +55,6 @@ def load_audio(file, sr, offset, duration, resample=True, approx=False, time_bas
             break
     assert total_read <= duration, f'Expected {duration} frames, got {total_read}'
     return sig, sr
-
-def save_wav(fname, aud, sr):
-    # clip before saving?
-    aud = t.clamp(aud, -1, 1).cpu().numpy()
-    for i in list(range(aud.shape[0])):
-        soundfile.write(f'{fname}/item_{i}.wav', aud[i], samplerate=sr, format='wav')
 
 def test_simple_loader():
     import librosa

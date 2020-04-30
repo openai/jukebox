@@ -4,7 +4,7 @@ import torch as t
 
 from jukebox.hparams import Hyperparams
 from jukebox.utils.torch_utils import empty_cache
-from jukebox.utils.io import save_wav, load_audio
+from jukebox.utils.audio_utils import save_wav, load_audio
 from jukebox.make_models import make_model
 from jukebox.align import get_alignment
 from jukebox.save_html import save_html
