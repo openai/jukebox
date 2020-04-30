@@ -33,10 +33,10 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 # Sampling
 To sample, run the following command. Model can be `5b`, `5b_lyrics`, `1b_lyrics`
 ``` 
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_length_in_seconds 24 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 3 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_length_in_seconds 20 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 6 --hop_fraction 0.5,0.5,0.125
 ```
 ``` 
-python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length_in_seconds 24 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length_in_seconds 20 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
 ```
 
 On a V100, to generate a single ctx at each level, it should take approximately 
@@ -54,8 +54,8 @@ To train a small vqvae, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend
 ```
-Here, {audio_files_dir} is the directory in which you can put the audio files for your dataset. The above trains a two-level VQ-VAE with downs_t = (5,3), and strides_t = (2, 2) meaning we downsample the audio by 2^5 = 32X to get the first level of codes, and 2^8 = 256X to get the second level codes.  
-sample_length is to be set so that after downsampling by the corresponding amount for that level, the tokens match the n_ctx of the prior hps.
+Here, `{audio_files_dir}` is the directory in which you can put the audio files for your dataset. 
+The above trains a two-level VQ-VAE with `downs_t = (5,3)`, and `strides_t = (2, 2)` meaning we downsample the audio by `2**5 = 32` to get the first level of codes, and `2**8 = 256` to get the second level codes.  
 Checkpoints are stored in the `logs` folder. You can monitor the training by running Tensorboard
 ```
 tensorboard --logdir logs
@@ -74,8 +74,8 @@ To train the upsampler, we can run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler --sample_length 65536 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 0 --weight_decay 0.01 --save_iters 1000
 ```
-
-We chose sample_lengths above so that after the compression factors of the VQ-VAE (32x and 256x at levels 0 and 1), we get an n_ctx which matches that of the prior/upsamplers we're training (8192 for each level). 
+We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
+Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
 
 ### Reuse pre-trained VQ-VAE and retrain top level prior on new dataset.
 Our pre-trained VQ-VAE can produce compressed codes for a wide variety of genres of music, and the pre-trained upsamplers can upsample them back to audio that sound very similar to the original audio.
