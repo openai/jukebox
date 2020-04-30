@@ -136,13 +136,18 @@ def primed_sample(x, labels, sampling_kwargs, priors, hps):
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
-def load_prompt(audio_files, sr, duration):
+def load_prompts(audio_files, duration, hps):
     xs = []
     for audio_file in audio_files:
-        x, _ = load_audio(audio_file, sr=sr, duration=duration, offset=0.0)
+        x, _ = load_audio(audio_file, sr=hps.sr, duration=duration, offset=0.0)
         x = x.T.mean(1, keepdims=True)
         xs.append(x)
-    return xs
+    while len(xs) < hps.n_samples:
+        xs.extend(xs)
+    xs = xs[:hps.n_samples]
+    x = t.stack([t.from_numpy(x) for x in xs])
+    x = x.to('cuda', non_blocking=True)
+    return x
 
 def save_samples(model, device, hps, sample_hps):
     print(hps)
@@ -207,19 +212,14 @@ def save_samples(model, device, hps, sample_hps):
     if sample_hps.mode == 'ancestral':
         ancestral_sample(labels, sampling_kwargs, priors, hps)
     elif sample_hps.mode == 'primed':
-        top_hop_length = vqvae.hop_lengths[-1]
-        duration = int(sample_hps.prompt_length_in_seconds * hps.sr) // top_hop_length * top_hop_length
         assert sample_hps.audio_file is not None
         audio_files = sample_hps.audio_file.split(',')
-        xs = load_prompt(audio_files, hps.sr, duration)
-        while len(xs) < hps.n_samples:
-            xs.extend(xs)
-        xs = xs[:hps.n_samples]
-        x = t.stack([t.from_numpy(x) for x in xs])
-        x = x.to('cuda', non_blocking=True)
+        top_raw_to_tokens = priors[-1].raw_to_tokens
+        duration = (int(sample_hps.prompt_length_in_seconds * hps.sr) // top_raw_to_tokens) * top_raw_to_tokens
+        x = load_prompts(audio_files, duration, hps)
         primed_sample(x, labels, sampling_kwargs, priors, hps)
     else:
-        raise ValueError(f'Unknown sample mode {mode}.')
+        raise ValueError(f'Unknown sample mode {sample_hps.mode}.')
 
 
 def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=12.0, port=29500, **kwargs):

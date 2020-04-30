@@ -51,8 +51,8 @@ class VQVAE(nn.Module):
 
         self.strides_t = strides_t
 
-        pow_w = calculate_strides(strides_t, downs_t)
-        self.hop_lengths = np.cumprod(pow_w)
+        self.downsamples = calculate_strides(strides_t, downs_t)
+        self.hop_lengths = np.cumprod(self.downsamples)
         if multipliers is None:
             self.multipliers = [1] * levels
         else:
