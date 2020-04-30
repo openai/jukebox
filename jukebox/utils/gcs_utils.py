@@ -2,7 +2,6 @@ import os
 import sys
 import subprocess
 from time import time
-from urllib.request import urlretrieve
 
 def gs_download(gs_path, local_path, async_download=False):
     args = ['gsutil',
@@ -28,9 +27,13 @@ def gs_upload(local_path, gs_path, async_upload=False):
     else:
         subprocess.call(args)
 
-def download(gs_path, local_path):
+def download(gs_path, local_path, async_download=False):
     remote_path = gs_path.replace("gs://", "https://storage.googleapis.com/")
-    urlretrieve(remote_path, local_path)
+    args = ['wget', '-q', '-O', local_path, remote_path]
+    if async_download:
+        subprocess.Popen(args)
+    else:
+        subprocess.call(args)
 
 def ls(regex):
     outputs = subprocess.check_output(['gsutil', 'ls', regex]).decode(sys.stdout.encoding)
