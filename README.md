@@ -31,24 +31,30 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 ```
 
 # Sampling
-To sample, run the following command. Model can be `5b`, `5b_lyrics`, `1b_lyrics`
+To sample normally, run the following command. Model can be `5b`, `5b_lyrics`, `1b_lyrics`
 ``` 
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_length_in_seconds 20 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 6 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
 ``` 
-python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length_in_seconds 20 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
+python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels=3 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=16 --hop_fraction=0.5,0.5,0.125
 ```
 The above generates the first `sample_length_in_seconds` seconds of audio from a song of total length `total_sample_length_in_seconds`.
 
-On a V100, it takes about 3 hrs for 5b model to fully sample the above 20 seconds of music. Since this could be a long time, its recommended to use n_samples > 1 so you can generate multiple samples in parallel.   
-
 The samples decoded from each level are stored in `{name}/level_{level}`. You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`.
+
+On a V100, it takes about 3 hrs to fully sample 20 seconds of music. Since this is a long time, it is recommended to use `n_samples > 1` so you can generate as many samples as possible in parallel. The 1B lyrics and upsamplers can process 16 samples at a time, while 5B can fit only up to 3. Since the vast majority of time is spent on upsampling, we recommend using a multiple of 3 less than 16 like `--n_samples 15` for `5b_lyrics`. This will make the top-level generate samples in groups of three while upsampling is done in one pass.
+
+If you want to prompt the model with your own creative piece or any other music, first save them as wave files and run
+```
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b_prompted --levels=3 --mode=primed --audio_file=path/to/recording.wav,awesome-mix.wav,fav-song.wav,etc.wav --prompt_length_in_seconds=12 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
+```
+This will load the four files, tile them to fill up to `n_samples` batch size, and prime the model with the first `prompt_length_in_seconds` seconds.
 
 # Training
 ## VQVAE
 To train a small vqvae, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length=262144 --bs=4 --nworkers=4 --audio_files_dir={audio_files_dir} --labels=False --train --aug_shift --aug_blend
 ```
 Here, `{audio_files_dir}` is the directory in which you can put the audio files for your dataset, and `{ngpus}` is number of GPU's you want to use to train. 
 The above trains a two-level VQ-VAE with `downs_t = (5,3)`, and `strides_t = (2, 2)` meaning we downsample the audio by `2**5 = 32` to get the first level of codes, and `2**8 = 256` to get the second level codes.  
@@ -63,7 +69,7 @@ Once the VQ-VAE is trained, we can restore it from its saved checkpoint and trai
 To train the top-level prior, we can run
 
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior --sample_length 2097152 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --test --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 1 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior --sample_length=2097152 --bs=4 --nworkers=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift --aug_blend --restore_vqvae=logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels=2 --level=1 --weight_decay=0.01 --save_iters=1000
 ```
 
 To train the upsampler, we can run
@@ -79,10 +85,10 @@ To re-use these for a new dataset of your choice, you can retrain just the top-l
 
 To retrain top-level on a new dataset, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name pretrained_vqvae_small_prior --sample_length=1048576 --bs 4 --nworkers 4 --bs_sample 4 --aug_shift --aug_blend --audio_files_dir {audio_files_dir} --labels False --train --test --prior --levels 3 --level 2 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 
-You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry 'my_model' in MODELs (in make_models.py) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model` . 
+You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry `my_model` in MODELs (in `make_models.py`) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model`. 
 	
 
 # Citation
