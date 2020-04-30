@@ -1,0 +1,2 @@
+recursive-include jukebox *.py
+recursive-include jukebox *.txt

@@ -1,3 +1,4 @@
+import os
 import re
 
 accepted = frozenset([chr(i) for i in range(ord('a'), ord('z') + 1)] +
@@ -26,12 +27,13 @@ def create_reverse_lookup(atoi):
 class ArtistGenreProcessor():
     def __init__(self, v3=False):
         self.v3 = v3
+        dirname = os.path.dirname(__file__)
         if self.v3:
-            self.artist_id_file = "jukebox/data/ids/v3_artist_ids.txt"
-            self.genre_id_file = "jukebox/data/ids/v3_genre_ids.txt"
+            self.artist_id_file = f"{dirname}/ids/v3_artist_ids.txt"
+            self.genre_id_file = f"{dirname}/ids/v3_genre_ids.txt"
         else:
-            self.artist_id_file = "jukebox/data/ids/v2_artist_ids.txt"
-            self.genre_id_file = "jukebox/data/ids/v2_genre_ids.txt"
+            self.artist_id_file = f"{dirname}/ids/v2_artist_ids.txt"
+            self.genre_id_file = f"{dirname}/ids/v2_genre_ids.txt"
         self.load_artists()
         self.load_genres()
 
