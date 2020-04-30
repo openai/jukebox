@@ -110,11 +110,10 @@ class VQVAE(nn.Module):
         x_out = self.postprocess(x_out)
         return x_out
 
-    def decode(self, zs, start_level=0, end_level=None):
-        bs = zs[0].shape[0]
-        z_chunks = [t.chunk(z, bs, dim=0) for z in zs]
+    def decode(self, zs, start_level=0, end_level=None, bs_chunks=1):
+        z_chunks = [t.chunk(z, bs_chunks, dim=0) for z in zs]
         x_outs = []
-        for i in range(bs):
+        for i in range(bs_chunks):
             zs_i = [z_chunk[i] for z_chunk in z_chunks]
             x_out = self._decode(zs_i, start_level=start_level, end_level=end_level)
             x_outs.append(x_out)
@@ -133,9 +132,8 @@ class VQVAE(nn.Module):
         zs = self.bottleneck.encode(xs)
         return zs[start_level:end_level]
 
-    def encode(self, x, start_level=0, end_level=None):
-        bs = x.shape[0]
-        x_chunks = t.chunk(x, bs, dim=0)
+    def encode(self, x, start_level=0, end_level=None, bs_chunks=1):
+        x_chunks = t.chunk(x, bs_chunks, dim=0)
         zs_list = []
         for x_i in x_chunks:
             zs_i = self._encode(x_i, start_level=start_level, end_level=end_level)

@@ -132,7 +132,7 @@ def upsample(zs, labels, sampling_kwargs, priors, hps):
 # Primed sample
 def primed_sample(x, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors)))
-    zs = priors[-1].encode(x, start_level=0, end_level=len(priors))
+    zs = priors[-1].encode(x, start_level=0, end_level=len(priors), bs_chunks=x.shape[0])
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 

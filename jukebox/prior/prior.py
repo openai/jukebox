@@ -201,32 +201,25 @@ class SimplePrior(nn.Module):
             x_cond = conditioner_block(z_cond, x_cond)
         return x_cond
 
-    def encode(self, x, start_level=None, end_level=None):
+    def encode(self, x, start_level=None, end_level=None, bs_chunks=1):
         if start_level == None:
             start_level = self.level
         if end_level == None:
             end_level = self.levels
-        N = x.shape[0]
         # Get latents
         with t.no_grad():
-            zs = self.encoder(x)
-            # for z, z_shape in zip(zs, self.z_shapes):
-            #     assert_shape(z, (N, *z_shape))
-            zs = zs[start_level:end_level]
+            zs = self.encoder(x, start_level=start_level, end_level=end_level, bs_chunks=bs_chunks)
         return zs
 
-    def decode(self, zs, start_level=None, end_level=None):
+    def decode(self, zs, start_level=None, end_level=None, bs_chunks=1):
         if start_level == None:
             start_level = self.level
         if end_level == None:
             end_level = self.levels
-        N = zs[0].shape[0]
+
         assert len(zs) == end_level - start_level
-        # for z, z_shape in zip(zs, self.z_shapes[start_level:end_level]):
-        #     T, = z_shape
-        #     assert_shape(z, (N, T))
         with t.no_grad():
-            x_out = self.decoder(zs, start_level=start_level, end_level=end_level)
+            x_out = self.decoder(zs, start_level=start_level, end_level=end_level, bs_chunks=bs_chunks)
         return x_out
 
     def get_cond(self, z_conds, y):
