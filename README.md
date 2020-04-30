@@ -6,7 +6,6 @@ Code for "Jukebox: A Generative Model for Music"
 [Paper](https://cdn.openai.com/papers/jukebox.pdf) 
 [Blog](https://openai.com/blog/jukebox) 
 [Explorer](http://jukebox.openai.com/) 
-[Colab](https://colab.research.google.com/drive/1IQcUNjxLs79YVKLF-A8ghFLCaVYHjc4v)
 
 # Install
 ``` 
