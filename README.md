@@ -85,10 +85,10 @@ To re-use these for a new dataset of your choice, you can retrain just the top-l
 
 To retrain top-level on a new dataset, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name pretrained_vqvae_small_prior --sample_length=1048576 --bs 4 --nworkers 4 --bs_sample 4 --aug_shift --aug_blend --audio_files_dir {audio_files_dir} --labels False --train --test --prior --levels 3 --level 2 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 
-You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry 'my_model' in MODELs (in make_models.py) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model` . 
+You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry `my_model` in MODELs (in `make_models.py`) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model`. 
 	
 
 # Citation
