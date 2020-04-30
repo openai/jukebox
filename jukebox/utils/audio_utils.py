@@ -133,9 +133,9 @@ def log_magnitude_loss(x_in, x_out, hps, epsilon=1e-4):
 
 def load_audio(file, sr, offset, duration, mono=False):
     # Librosa loads more filetypes than soundfile
-    x = librosa.load(file, sr=sr, mono=mono, offset=offset/sr, duration=duration/sr)
+    x, _ = librosa.load(file, sr=sr, mono=mono, offset=offset/sr, duration=duration/sr)
     if len(x.shape) == 1:
-        x = x.view(1, -1)
+        x = x.reshape((1, -1))
     return x    
 
 
