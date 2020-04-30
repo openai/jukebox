@@ -159,11 +159,11 @@ def save_samples(model, device, hps, sample_hps):
     total_length = hps.total_sample_length_in_seconds * hps.sr
     offset = 0
     metas = [dict(artist = "Alan Jackson",
-                genre = "Country",
-                lyrics = poems['ozymandias'],
-                total_length=total_length,
-                offset=offset,
-                ),
+                  genre = "Country",
+                  lyrics = poems['ozymandias'],
+                  total_length=total_length,
+                  offset=offset,
+                  ),
              dict(artist="Joe Bonamassa",
                   genre="Blues Rock",
                   lyrics=gpt_2_lyrics['hottub'],
