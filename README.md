@@ -14,7 +14,6 @@ conda create --name jukebox python=3.7.5
 conda activate jukebox
 conda install mpi4py=3.0.3
 conda install pytorch=1.4 torchvision=0.5 cudatoolkit=10.0 -c pytorch
-
 git clone https://github.com/openai/jukebox.git
 cd jukebox
 pip install -r requirements.txt
@@ -39,7 +38,8 @@ python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels=3 --sample_
 ```
 The above generates the first `sample_length_in_seconds` seconds of audio from a song of total length `total_sample_length_in_seconds`.
 
-The samples decoded from each level are stored in `{name}/level_{level}`. You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`.
+The samples decoded from each level are stored in `{name}/level_{level}`.
+ You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`. Run `python -m http.server` and open the html through the server to see the lyrics animate as the song plays.  
 
 On a V100, it takes about 3 hrs to fully sample 20 seconds of music. Since this is a long time, it is recommended to use `n_samples > 1` so you can generate as many samples as possible in parallel. The 1B lyrics and upsamplers can process 16 samples at a time, while 5B can fit only up to 3. Since the vast majority of time is spent on upsampling, we recommend using a multiple of 3 less than 16 like `--n_samples 15` for `5b_lyrics`. This will make the top-level generate samples in groups of three while upsampling is done in one pass.
 
