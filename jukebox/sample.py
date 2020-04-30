@@ -140,6 +140,7 @@ def load_prompts(audio_files, duration, hps):
     xs = []
     for audio_file in audio_files:
         x, _ = load_audio(audio_file, sr=hps.sr, duration=duration, offset=0.0, mono=True)
+        x = x.T # CT -> TC
         xs.append(x)
     while len(xs) < hps.n_samples:
         xs.extend(xs)
