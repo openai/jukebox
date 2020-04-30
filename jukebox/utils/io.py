@@ -1,6 +1,7 @@
 import numpy as np
 import av
 import soundfile
+import torch as t
 
 def get_duration_sec(file, cache=False):
     try:
