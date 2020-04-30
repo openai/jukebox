@@ -2,6 +2,7 @@ import numpy as np
 import av
 import soundfile
 import torch as t
+import torch.distributed as dist
 
 def get_duration_sec(file, cache=False):
     try:
@@ -136,8 +137,6 @@ def test_dataset_loader():
         break
 
 if __name__ == '__main__':
-    import torch as t
-    import torch.distributed as dist
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     setup_dist_from_mpi(port=29500)
     test_dataset_loader()

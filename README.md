@@ -15,12 +15,12 @@ conda create --name jukebox python=3.7.5
 conda activate jukebox
 conda install mpi4py=3.0.3
 conda install pytorch=1.4 torchvision=0.5 cudatoolkit=10.0 -c pytorch
+conda install av=7.0.01 -c conda-forge 
 cd jukebox
 pip install -r requirements.txt
 pip install -e .
 
 # Required: Training
-conda install av=7.0.01 -c conda-forge 
 cd tensorboardX
 python setup.py install
  

@@ -70,6 +70,7 @@ def get_lr_scheduler(opt, hps):
             return hps.lr_scale * (hps.lr_gamma ** (step // hps.lr_decay)) * min(1.0, step / hps.lr_warmup)
 
     shd = t.optim.lr_scheduler.LambdaLR(opt, lr_lambda)
+    
     return shd
 
 def get_optimizer(model, hps):
