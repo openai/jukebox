@@ -9,6 +9,7 @@ from jukebox.make_models import make_model
 from jukebox.align import get_alignment
 from jukebox.save_html import save_html
 from jukebox.utils.sample_utils import split_batch, get_starts
+from jukebox.utils.dist_utils import print_once
 import fire
 
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
@@ -40,6 +41,8 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     else:
         sample_tokens = (end - start)
     conditioning_tokens, new_tokens = z.shape[1], sample_tokens - z.shape[1]
+
+    print_once(f"Sampling {sample_tokens} tokens for [{start},{start+sample_tokens}]. Conditioning on {conditioning_tokens} tokens")
 
     if new_tokens <= 0:
         # Nothing new to sample
@@ -75,6 +78,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 
 # Sample total_length tokens at level=level with hop_length=hop_length
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
+    print_once(f"Sampling level {level}")
     if total_length >= prior.n_ctx:
         for start in get_starts(total_length, prior.n_ctx, hop_length):
             zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)

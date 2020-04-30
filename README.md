@@ -38,13 +38,9 @@ python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels 3 --sample_
 ``` 
 python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels 3 --sample_length_in_seconds 20 --total_sample_length_in_seconds 180 --sr 44100 --n_samples 16 --hop_fraction 0.5,0.5,0.125
 ```
+The above generates the first `sample_length_in_seconds` seconds of audio from a song of total length `total_sample_length_in_seconds`.
 
-On a V100, to generate a single ctx at each level, it should take approximately 
-- 12 min for the 5b model top level (1 ctx = 24 sec of music)
-- 7 min for the 1b model top level (1 ctx = 18 sec of music)
-- 9 min for upsamplers (1 ctx = 6 sec and 1.5 sec respectively for middle and bottom level). 
-
-So, it takes about 3 hrs for 5b model to fully sample 24sec of music. Since this could be a long time, its recommended to use n_samples > 1 so you can generate multiple samples in parallel.   
+On a V100, it takes about 3 hrs for 5b model to fully sample the above 20 seconds of music. Since this could be a long time, its recommended to use n_samples > 1 so you can generate multiple samples in parallel.   
 
 The samples decoded from each level are stored in `{name}/level_{level}`. You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`.
 
@@ -54,7 +50,7 @@ To train a small vqvae, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend
 ```
-Here, `{audio_files_dir}` is the directory in which you can put the audio files for your dataset. 
+Here, `{audio_files_dir}` is the directory in which you can put the audio files for your dataset, and `{ngpus}` is number of GPU's you want to use to train. 
 The above trains a two-level VQ-VAE with `downs_t = (5,3)`, and `strides_t = (2, 2)` meaning we downsample the audio by `2**5 = 32` to get the first level of codes, and `2**8 = 256` to get the second level codes.  
 Checkpoints are stored in the `logs` folder. You can monitor the training by running Tensorboard
 ```
@@ -67,12 +63,12 @@ Once the VQ-VAE is trained, we can restore it from its saved checkpoint and trai
 To train the top-level prior, we can run
 
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior --sample_length 2097152 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 1 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior --sample_length 2097152 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --test --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 1 --weight_decay 0.01 --save_iters 1000
 ```
 
 To train the upsampler, we can run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler --sample_length 65536 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 0 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --test --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 0 --weight_decay 0.01 --save_iters 1000
 ```
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
@@ -83,7 +79,7 @@ To re-use these for a new dataset of your choice, you can retrain just the top-l
 
 To retrain top-level on a new dataset, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name pretrained_vqvae_small_prior --sample_length=1048576 --bs 4 --nworkers 4 --bs_sample 4 --aug_shift --aug_blend --audio_files_dir {audio_files_dir} --labels False --train --prior --levels 3 --level 2 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name pretrained_vqvae_small_prior --sample_length=1048576 --bs 4 --nworkers 4 --bs_sample 4 --aug_shift --aug_blend --audio_files_dir {audio_files_dir} --labels False --train --test --prior --levels 3 --level 2 --weight_decay 0.01 --save_iters 1000
 ```
 
 You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry 'my_model' in MODELs (in make_models.py) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model` . 
