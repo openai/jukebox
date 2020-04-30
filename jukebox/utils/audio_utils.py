@@ -131,9 +131,9 @@ def log_magnitude_loss(x_in, x_out, hps, epsilon=1e-4):
     spec_out = t.log(spec(squeeze(x_out.float()), hps) + epsilon)
     return t.mean(t.abs(spec_in - spec_out))
 
-def load_audio(file, sr, offset, duration):
+def load_audio(file, sr, offset, duration, mono=False):
     # Librosa loads more filetypes than soundfile
-    return librosa.load(file, sr=sr, mono=False, offset=offset/sr, duration=duration/sr)
+    return librosa.load(file, sr=sr, mono=mono, offset=offset/sr, duration=duration/sr)
 
 def save_wav(fname, aud, sr):
     # clip before saving?

@@ -139,8 +139,7 @@ def primed_sample(x, labels, sampling_kwargs, priors, hps):
 def load_prompts(audio_files, duration, hps):
     xs = []
     for audio_file in audio_files:
-        x, _ = load_audio(audio_file, sr=hps.sr, duration=duration, offset=0.0)
-        x = x.T.mean(1, keepdims=True)
+        x, _ = load_audio(audio_file, sr=hps.sr, duration=duration, offset=0.0, mono=True)
         xs.append(x)
     while len(xs) < hps.n_samples:
         xs.extend(xs)
