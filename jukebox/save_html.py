@@ -88,42 +88,43 @@ def _save_item_html(item_dir, item_id, item_name, data):
         with open(f'{item_dir}/lyrics.json', 'w') as f:
             json.dump(lyrics, f)
 
-        # JS for animation
-        print("""<script>
-        async function fetchAsync (url) {
-            let response = await fetch(url);
-            let data = await response.json();
-            return data;
-        }
-
-        var audio = document.getElementById('""" + f'{wav_src}' + """');
-        audio.onplay = function () {
-            track = '""" + f'{item_id}' + """'
-            fetchAsync('""" + f'{align_src}' + """')
-            .then(data => animateLyrics(data, track, this))
-            .catch(reason => console.log(reason.message))
-        }; 
-
-        function animateLyrics(data, track, audio) {
-            var animate = setInterval(function () {
-                var time = Math.floor(audio.currentTime*""" + f'{total_alignment_length}' + """/audio.duration);
-                if (!(time == 0 || time == """ + f'{total_alignment_length}' + """)) {
-                    console.log(time);
-                    changeColor(data, track, audio, time);
-                }
-                if (audio.paused) {
-                    clearInterval(animate);
-                }
-            }, 50);
-        }
-
-        function changeColor(data, track, audio, time) {
-            colors = data[time]
-            for (i = 0; i < colors.length; i++){
-                character = document.getElementById(track + '/' + i.toString());
-                color = Math.max(230 - 10*colors[i], 0).toString();
-                character.style.color = 'rgb(255,' + color + ',' + color + ')';
+        if alignment is not None:
+            # JS for alignment animation
+            print("""<script>
+            async function fetchAsync (url) {
+                let response = await fetch(url);
+                let data = await response.json();
+                return data;
             }
-        }
-        </script>""", file=html)
+    
+            var audio = document.getElementById('""" + f'{wav_src}' + """');
+            audio.onplay = function () {
+                track = '""" + f'{item_id}' + """'
+                fetchAsync('""" + f'{align_src}' + """')
+                .then(data => animateLyrics(data, track, this))
+                .catch(reason => console.log(reason.message))
+            }; 
+    
+            function animateLyrics(data, track, audio) {
+                var animate = setInterval(function () {
+                    var time = Math.floor(audio.currentTime*""" + f'{total_alignment_length}' + """/audio.duration);
+                    if (!(time == 0 || time == """ + f'{total_alignment_length}' + """)) {
+                        console.log(time);
+                        changeColor(data, track, audio, time);
+                    }
+                    if (audio.paused) {
+                        clearInterval(animate);
+                    }
+                }, 50);
+            }
+    
+            function changeColor(data, track, audio, time) {
+                colors = data[time]
+                for (i = 0; i < colors.length; i++){
+                    character = document.getElementById(track + '/' + i.toString());
+                    color = Math.max(230 - 10*colors[i], 0).toString();
+                    character.style.color = 'rgb(255,' + color + ',' + color + ')';
+                }
+            }
+            </script>""", file=html)
         print("</body></html>", file=html)
