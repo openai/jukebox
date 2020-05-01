@@ -104,14 +104,14 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         empty_cache()
 
         # Decode sample
-        x = priors[-1].decode(zs[level:], start_level=level, bs_chunks=zs[level].shape[0])
+        x = prior.decode(zs[level:], start_level=level, bs_chunks=zs[level].shape[0])
 
         logdir = f"{hps.name}/level_{level}"
         if not os.path.exists(logdir):
             os.makedirs(logdir)
         t.save(dict(zs=zs, labels=labels, sampling_kwargs=sampling_kwargs, x=x), f"{logdir}/data.pth.tar")
         save_wav(logdir, x, hps.sr)
-        if alignments is None and priors[-1].n_tokens > 0:
+        if alignments is None and priors[-1] is not None and priors[-1].n_tokens > 0:
             alignments = get_alignment(x, zs, labels[-1], priors[-1], sampling_kwargs[-1]['fp16'], hps)
         save_html(logdir, x, zs, labels[-1], alignments, hps)
     return zs
