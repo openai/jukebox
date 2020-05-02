@@ -2,7 +2,7 @@ import torch as t
 import torch.nn as nn
 
 from jukebox.transformer.ops import LayerNorm
-from jukebox.vqvae.encdec import DecoderConvBock
+from jukebox.vqvae.encdec import DecoderConvBlock
 from jukebox.utils.torch_utils import assert_shape
 
 class Conditioner(nn.Module):
@@ -16,7 +16,7 @@ class Conditioner(nn.Module):
         nn.init.normal_(self.x_emb.weight, std=0.02 * init_scale)
 
         # Conditioner
-        self.cond = DecoderConvBock(self.width, self.width, down_t, stride_t, **block_kwargs, zero_out=zero_out, res_scale=res_scale)
+        self.cond = DecoderConvBlock(self.width, self.width, down_t, stride_t, **block_kwargs, zero_out=zero_out, res_scale=res_scale)
         self.ln = LayerNorm(self.width)
 
     def preprocess(self, x):
