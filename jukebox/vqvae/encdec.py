@@ -25,7 +25,7 @@ class EncoderConvBlock(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-class DecoderConvBock(nn.Module):
+class DecoderConvBlock(nn.Module):
     def __init__(self, input_emb_width, output_emb_width, down_t,
                  stride_t, width, depth, m_conv, dilation_growth_rate=1, dilation_cycle=None, zero_out=False, res_scale=False, reverse_decoder_dilation=False, checkpoint_res=False):
         super().__init__()
@@ -96,7 +96,7 @@ class Decoder(nn.Module):
 
         self.strides_t = strides_t
 
-        level_block = lambda level, down_t, stride_t: DecoderConvBock(output_emb_width,
+        level_block = lambda level, down_t, stride_t: DecoderConvBlock(output_emb_width,
                                                           output_emb_width,
                                                           down_t, stride_t,
                                                           **block_kwargs)
