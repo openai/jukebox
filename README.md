@@ -3,7 +3,7 @@
 # Jukebox
 Code for "Jukebox: A Generative Model for Music"
 
-[Paper](https://cdn.openai.com/papers/jukebox.pdf) 
+[Paper](https://arxiv.org/abs/2005.00341) 
 [Blog](https://openai.com/blog/jukebox) 
 [Explorer](http://jukebox.openai.com/) 
 [Colab](https://colab.research.google.com/github/openai/jukebox/blob/master/jukebox/Interacting_with_Jukebox.ipynb)
@@ -101,7 +101,7 @@ Please cite using the following bibtex entry:
 @article{dhariwal2020jukebox,
   title={Jukebox: A Generative Model for Music},
   author={Dhariwal, Prafulla and Jun, Heewoo and Payne, Christine and Kim, Jong Wook and Radford, Alec and Sutskever, Ilya},
-  journal={arXiv preprint arXiv:[TODO]},
+  journal={arXiv preprint arXiv:2005.00341},
   year={2020}
 }
 ```
