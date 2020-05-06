@@ -105,3 +105,9 @@ Please cite using the following bibtex entry:
   year={2020}
 }
 ```
+
+# License 
+[Noncommercial Use License](./LICENSE) 
+
+It covers both released code and weights. 
+
