@@ -38,10 +38,14 @@ class ArtistGenreProcessor():
         self.load_genres()
 
     def get_artist_id(self, artist):
+        input_artist = artist
         if self.v3:
             artist = artist.lower()
         else:
             artist = norm(artist)
+        if artist not in self.artist_ids:
+            print(f"Input artist {input_artist} maps to {artist}, which is not present in {self.artist_id_file}."
+                  f"Defaulting to artist=unknown, if that seems wrong please format artist name correctly")
         return self.artist_ids.get(artist, 0)
 
     def get_genre_ids(self, genre):
