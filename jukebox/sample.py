@@ -123,6 +123,12 @@ def ancestral_sample(labels, sampling_kwargs, priors, hps):
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
+# Continue ancestral sampling from previously saved codes
+def continue_sample(zs, labels, sampling_kwargs, priors, hps):
+    sample_levels = list(range(len(priors)))
+    zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
+    return zs
+
 # Upsample given already generated upper-level codes
 def upsample(zs, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors) - 1))
@@ -218,6 +224,11 @@ def save_samples(model, device, hps, sample_hps):
 
     if sample_hps.mode == 'ancestral':
         ancestral_sample(labels, sampling_kwargs, priors, hps)
+    elif sample_hps.mode == 'continue':
+        assert sample_hps.codes_file is not None
+        data = t.load(sample_hps.codes_file, map_location='cpu')
+        zs = data['zs']
+        continue_sample(zs, labels, sampling_kwargs, priors, hps)
     elif sample_hps.mode == 'primed':
         assert sample_hps.audio_file is not None
         audio_files = sample_hps.audio_file.split(',')
@@ -229,11 +240,11 @@ def save_samples(model, device, hps, sample_hps):
         raise ValueError(f'Unknown sample mode {sample_hps.mode}.')
 
 
-def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=12.0, port=29500, **kwargs):
+def run(model, mode='ancestral', codes_file=None, audio_file=None, prompt_length_in_seconds=12.0, port=29500, **kwargs):
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     rank, local_rank, device = setup_dist_from_mpi(port=port)
     hps = Hyperparams(**kwargs)
-    sample_hps = Hyperparams(dict(mode=mode, audio_file=audio_file, prompt_length_in_seconds=prompt_length_in_seconds))
+    sample_hps = Hyperparams(dict(mode=mode, codes_file=codes_file, audio_file=audio_file, prompt_length_in_seconds=prompt_length_in_seconds))
 
     with t.no_grad():
         save_samples(model, device, hps, sample_hps)
