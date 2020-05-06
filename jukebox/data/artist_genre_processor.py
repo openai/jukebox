@@ -45,7 +45,7 @@ class ArtistGenreProcessor():
             artist = norm(artist)
         if artist not in self.artist_ids:
             print(f"Input artist {input_artist} maps to {artist}, which is not present in {self.artist_id_file}."
-                  f"Defaulting to artist=unknown, if that seems wrong please format artist name correctly")
+                  f"Defaulting to (artist_id, artist) = (0, unknown), if that seems wrong please format artist correctly")
         return self.artist_ids.get(artist, 0)
 
     def get_genre_ids(self, genre):
@@ -54,7 +54,11 @@ class ArtistGenreProcessor():
         else:
             # In v2, we convert genre into a bag of words
             genres = norm(genre).split("_")
-        return [self.genre_ids[word] for word in genres]
+        for word in genres:
+            if word not in self.genre_ids:
+                print(f"Input genre {genre} maps to the list {genres}. {word} is not present in {self.genre_id_file}. "
+                      f"Defaulting to (word_id, word) = (0, unknown), if that seems wrong please format genre correctly")
+        return [self.genre_ids.get(word, 0) for word in genres]
 
     # get_artist/genre throw error if we ask for non-present values
     def get_artist(self, artist_id):
