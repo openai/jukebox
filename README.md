@@ -13,7 +13,7 @@ Code for "Jukebox: A Generative Model for Music"
 # Required: Sampling
 conda create --name jukebox python=3.7.5
 conda activate jukebox
-conda install mpi4py=3.0.3
+conda install -c anaconda mpi4py=3.0.3
 conda install pytorch=1.4 torchvision=0.5 cudatoolkit=10.0 -c pytorch
 git clone https://github.com/openai/jukebox.git
 cd jukebox
