@@ -189,7 +189,7 @@ def save_samples(model, device, hps, sample_hps):
                   total_length=total_length,
                   offset=offset,
                   ),
-             dict(artist="Celine Dion",
+             dict(artist="Céline Dion",
                   genre="Pop",
                   lyrics=gpt_2_lyrics['darkness'],
                   total_length=total_length,
