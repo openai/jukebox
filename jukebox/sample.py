@@ -123,6 +123,12 @@ def ancestral_sample(labels, sampling_kwargs, priors, hps):
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
+# Continue ancestral sampling from previously saved codes
+def continue_sample(zs, labels, sampling_kwargs, priors, hps):
+    sample_levels = list(range(len(priors)))
+    zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
+    return zs
+
 # Upsample given already generated upper-level codes
 def upsample(zs, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors) - 1))
@@ -149,6 +155,20 @@ def load_prompts(audio_files, duration, hps):
     x = t.stack([t.from_numpy(x) for x in xs])
     x = x.to('cuda', non_blocking=True)
     return x
+
+# Load codes from previous sampling run
+def load_codes(codes_file, duration, priors, hps):
+    data = t.load(codes_file, map_location='cpu')
+    zs = [z.cuda() for z in data['zs']]
+    assert zs[-1].shape[0] == hps.n_samples, f"Expected bs = {hps.n_samples}, got {zs[-1].shape[0]}"
+    del data
+    if duration is not None:
+        # Cut off codes to match duration
+        top_raw_to_tokens = priors[-1].raw_to_tokens
+        assert duration % top_raw_to_tokens == 0, f"Cut-off duration {duration} not an exact multiple of top_raw_to_tokens"
+        assert duration//top_raw_to_tokens <= zs[-1].shape[1], f"Cut-off tokens {duration//priors[-1].raw_to_tokens} longer than tokens {zs[-1].shape[1]} in saved codes"
+        zs = [z[:,:duration//prior.raw_to_tokens] for z, prior in zip(zs, priors)]
+    return zs
 
 # Generate and save samples, alignment, and webpage for visualization.
 def save_samples(model, device, hps, sample_hps):
@@ -218,8 +238,21 @@ def save_samples(model, device, hps, sample_hps):
 
     if sample_hps.mode == 'ancestral':
         ancestral_sample(labels, sampling_kwargs, priors, hps)
+    elif sample_hps.mode in ['continue', 'upsample']:
+        assert sample_hps.codes_file is not None
+        top_raw_to_tokens = priors[-1].raw_to_tokens
+        if sample_hps.prompt_length_in_seconds is not None:
+            duration = (int(sample_hps.prompt_length_in_seconds * hps.sr) // top_raw_to_tokens) * top_raw_to_tokens
+        else:
+            duration = None
+        zs = load_codes(sample_hps.codes_file, duration, priors, hps)
+        if sample_hps.mode == 'continue':
+            continue_sample(zs, labels, sampling_kwargs, priors, hps)
+        elif sample_hps.mode == 'upsample':
+            upsample(zs, labels, sampling_kwargs, priors, hps)
     elif sample_hps.mode == 'primed':
         assert sample_hps.audio_file is not None
+        assert sample_hps.prompt_length_in_seconds is not None
         audio_files = sample_hps.audio_file.split(',')
         top_raw_to_tokens = priors[-1].raw_to_tokens
         duration = (int(sample_hps.prompt_length_in_seconds * hps.sr) // top_raw_to_tokens) * top_raw_to_tokens
@@ -229,11 +262,11 @@ def save_samples(model, device, hps, sample_hps):
         raise ValueError(f'Unknown sample mode {sample_hps.mode}.')
 
 
-def run(model, mode='ancestral', audio_file=None, prompt_length_in_seconds=12.0, port=29500, **kwargs):
+def run(model, mode='ancestral', codes_file=None, audio_file=None, prompt_length_in_seconds=None, port=29500, **kwargs):
     from jukebox.utils.dist_utils import setup_dist_from_mpi
     rank, local_rank, device = setup_dist_from_mpi(port=port)
     hps = Hyperparams(**kwargs)
-    sample_hps = Hyperparams(dict(mode=mode, audio_file=audio_file, prompt_length_in_seconds=prompt_length_in_seconds))
+    sample_hps = Hyperparams(dict(mode=mode, codes_file=codes_file, audio_file=audio_file, prompt_length_in_seconds=prompt_length_in_seconds))
 
     with t.no_grad():
         save_samples(model, device, hps, sample_hps)
