@@ -48,7 +48,7 @@ The hps are for a V100 GPU with 16 GB GPU memory. The `1b_lyrics`, `5b`, and `5b
 
 On a V100, it takes about 3 hrs to fully sample 20 seconds of music. Since this is a long time, it is recommended to use `n_samples > 1` so you can generate as many samples as possible in parallel. The 1B lyrics and upsamplers can process 16 samples at a time, while 5B can fit only up to 3. Since the vast majority of time is spent on upsampling, we recommend using a multiple of 3 less than 16 like `--n_samples 15` for `5b_lyrics`. This will make the top-level generate samples in groups of three while upsampling is done in one pass.
 
-To continue sampling from the saved data for a longer duration, you can run
+To continue sampling from already generated codes for a longer duration, you can run
 ```
 python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --mode=continue --codes_file=sample_5b/level_0/data.pth.tar --sample_length_in_seconds=40 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
