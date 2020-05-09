@@ -2,7 +2,7 @@ import numpy as np
 import torch as t
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 
 class BottleneckBlock(nn.Module):
     def __init__(self, k_bins, emb_width, mu):

@@ -1,6 +1,6 @@
 import math
 import torch.nn as nn
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from jukebox.utils.checkpoint import checkpoint
 
 class ResConvBlock(nn.Module):
