@@ -75,7 +75,7 @@ class ArtistGenreProcessor():
     def load_artists(self):
         print(f'Loading artist IDs from {self.artist_id_file}')
         self.artist_ids = {}
-        with open(self.artist_id_file, 'r') as f:
+        with open(self.artist_id_file, 'r', encoding="utf-8") as f:
             for line in f:
                 artist, artist_id = line.strip().split(';')
                 self.artist_ids[artist.lower()] = int(artist_id)
@@ -84,7 +84,7 @@ class ArtistGenreProcessor():
     def load_genres(self):
         print(f'Loading artist IDs from {self.genre_id_file}')
         self.genre_ids = {}
-        with open(self.genre_id_file, 'r') as f:
+        with open(self.genre_id_file, 'r', encoding="utf-8") as f:
             for line in f:
                 genre, genre_id = line.strip().split(';')
                 self.genre_ids[genre.lower()] = int(genre_id)

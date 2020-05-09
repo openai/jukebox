@@ -8,7 +8,7 @@ import fire
 import warnings
 import numpy as np
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from torch.nn.parallel import DistributedDataParallel
 
 from jukebox.hparams import setup_hparams

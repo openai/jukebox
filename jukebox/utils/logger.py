@@ -1,5 +1,5 @@
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from tqdm import tqdm
 from datetime import date
 import os

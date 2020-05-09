@@ -3,7 +3,7 @@ import importlib
 import math
 import numpy as np
 import torch
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from torch.optim import Optimizer
 from torch._utils import _flatten_dense_tensors
 

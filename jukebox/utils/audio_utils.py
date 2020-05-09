@@ -1,6 +1,6 @@
 import numpy as np
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 import soundfile
 import librosa
 from jukebox.utils.dist_utils import print_once
