@@ -138,7 +138,7 @@ We use 2 kinds of labels information:
 After these modifications, to train a top-level with labels, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior_labels \
---sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
+--sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
 --labels_v3=True --y_bins=({artists},{genres}) --max_bow_genre_size=1 --min_duration=60.0 --max_duration=600.0 --t_bins=64
 ```
@@ -153,7 +153,7 @@ To train in addition with lyrics, update `get_metadata` in `data/files_dataset.p
 After these modifications, to train a top-level with labels and lyrics, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_lyric_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_lyric_prior_labels \
---sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
+--sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
 --labels_v3=True --y_bins=({artists},{genres}) --max_bow_genre_size=1 --min_duration=60.0 --max_duration=600.0 --t_bins=64 \
 --use_tokens=True --n_tokens=384 --n_vocab=79
