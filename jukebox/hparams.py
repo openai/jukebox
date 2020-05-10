@@ -217,6 +217,25 @@ small_prior = Hyperparams(
 )
 HPARAMS_REGISTRY["small_prior"] = small_prior
 
+small_lyric_prior = Hyperparams(
+    n_ctx=6144,
+    prior_width=1024,
+    prior_depth=48,
+    heads=2,
+    attn_order=12,
+    blocks=64,
+    init_scale=0.7,
+    use_tokens=True,
+    n_tokens=384,
+    prime_loss_fraction=0.4,
+    single_enc_dec=True,
+    # Defaults for v3
+    t_bins=64,
+    max_bow_genre_size=1,
+    n_vocab=79,
+)
+HPARAMS_REGISTRY["small_lyric_prior"] = small_lyric_prior
+
 small_upsampler = Hyperparams(
     n_ctx=8192,
     prior_width=1024,
@@ -250,6 +269,7 @@ cpu_ema = Hyperparams(
     ema_fused=False,
 )
 HPARAMS_REGISTRY["cpu_ema"] = cpu_ema
+
 
 DEFAULTS["rcall"] = Hyperparams(
     rcall_command="<unknown_rcall_command>",
