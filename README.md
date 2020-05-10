@@ -33,10 +33,12 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 ## Sampling from scratch
 To sample normally, run the following command. Model can be `5b`, `5b_lyrics`, `1b_lyrics`
 ``` 
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --sample_length_in_seconds=20 \
+--total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
 ``` 
-python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels=3 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=16 --hop_fraction=0.5,0.5,0.125
+python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels=3 --sample_length_in_seconds=20 \
+--total_sample_length_in_seconds=180 --sr=44100 --n_samples=16 --hop_fraction=0.5,0.5,0.125
 ```
 The above generates the first `sample_length_in_seconds` seconds of audio from a song of total length `total_sample_length_in_seconds`.
 
@@ -50,7 +52,9 @@ On a V100, it takes about 3 hrs to fully sample 20 seconds of music. Since this 
 
 To continue sampling from already generated codes for a longer duration, you can run
 ```
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --mode=continue --codes_file=sample_5b/level_0/data.pth.tar --sample_length_in_seconds=40 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --mode=continue \
+--codes_file=sample_5b/level_0/data.pth.tar --sample_length_in_seconds=40 --total_sample_length_in_seconds=180 \
+--sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
 Here, we take the 20 seconds samples saved from the first sampling run at `sample_5b/level_0/data.pth.tar` and continue by adding 20 more seconds. 
 
@@ -58,14 +62,18 @@ You could also continue directly from the level 2 saved outputs, just pass `--co
 
 If you stopped sampling at only the first level and want to upsample the saved codes, you can run
 ```
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --mode=upsample --codes_file=sample_5b/level_2/data.pth.tar --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b --levels=3 --mode=upsample \
+--codes_file=sample_5b/level_2/data.pth.tar --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 \
+--sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
 Here, we take the 20 seconds samples saved from the first sampling run at `sample_5b/level_2/data.pth.tar` and upsample the lower two levels.
 
 ## Prompt with your own music
 If you want to prompt the model with your own creative piece or any other music, first save them as wave files and run
 ```
-python jukebox/sample.py --model=5b_lyrics --name=sample_5b_prompted --levels=3 --mode=primed --audio_file=path/to/recording.wav,awesome-mix.wav,fav-song.wav,etc.wav --prompt_length_in_seconds=12 --sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
+python jukebox/sample.py --model=5b_lyrics --name=sample_5b_prompted --levels=3 --mode=primed \
+--audio_file=path/to/recording.wav,awesome-mix.wav,fav-song.wav,etc.wav --prompt_length_in_seconds=12 \
+--sample_length_in_seconds=20 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=6 --hop_fraction=0.5,0.5,0.125
 ```
 This will load the four files, tile them to fill up to `n_samples` batch size, and prime the model with the first `prompt_length_in_seconds` seconds.
 
@@ -73,7 +81,8 @@ This will load the four files, tile them to fill up to `n_samples` batch size, a
 ## VQVAE
 To train a small vqvae, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length=262144 --bs=4 --nworkers=4 --audio_files_dir={audio_files_dir} --labels=False --train --aug_shift --aug_blend
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae --name=small_vqvae --sample_length=262144 --bs=4 \
+--audio_files_dir={audio_files_dir} --labels=False --train --aug_shift --aug_blend
 ```
 Here, `{audio_files_dir}` is the directory in which you can put the audio files for your dataset, and `{ngpus}` is number of GPU's you want to use to train. 
 The above trains a two-level VQ-VAE with `downs_t = (5,3)`, and `strides_t = (2, 2)` meaning we downsample the audio by `2**5 = 32` to get the first level of codes, and `2**8 = 256` to get the second level codes.  
@@ -88,12 +97,16 @@ Once the VQ-VAE is trained, we can restore it from its saved checkpoint and trai
 To train the top-level prior, we can run
 
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior --sample_length=2097152 --bs=4 --nworkers=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift --aug_blend --restore_vqvae=logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels=2 --level=1 --weight_decay=0.01 --save_iters=1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp16,cpu_ema --name=small_prior \
+--sample_length=2097152 --bs=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift --aug_blend \
+--restore_vqvae=logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels=2 --level=1 --weight_decay=0.01 --save_iters=1000
 ```
 
 To train the upsampler, we can run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler --sample_length 262144 --bs 4 --nworkers 4 --audio_files_dir {audio_files_dir} --labels False --train --test --aug_shift --aug_blend --restore_vqvae logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels 2 --level 0 --weight_decay 0.01 --save_iters 1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler \
+--sample_length=262144 --bs=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift \--aug_blend \
+--restore_vqvae=logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels=2 --level=0 --weight_decay=0.01 --save_iters=1000
 ```
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
@@ -105,20 +118,33 @@ To re-use these for a new dataset of your choice, you can retrain just the top-l
 
 To retrain top-level on a new dataset, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior \
+--sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
+--labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry `my_model` in MODELs (in `make_models.py`) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model`. 
 
 #### With labels 
-To train with you own metadata for your audio files, pass `--labels=True --labels_v3=True` and implement `get_metadata` in `data/files_dataset.py` to return the `artist`, `genre` and `lyrics` for a given audio file. 
+To train with you own metadata for your audio files, pass `--labels=True --labels_v3=True` and implement `get_metadata` in `data/files_dataset.py` to return the `artist`, `genre` and `lyrics` for a given audio file. For now, you can pass `''` for lyrics to not use any lyrics.
 
-We use 3 kinds of labels information:
+We use 2 kinds of labels information:
 - Artist/Genre: 
   - For each file, we return an artist_id and a list of genre_ids. The reason we have a list and not a single genre_id is that in v2, we split genres like `blues_rock` into a bag of words `[blues, rock]`, and we pass atmost `max_bow_genre_size` of those, in `v3` we consider it as a single word and just set `max_bow_genre_size=1`.
   - Update the `v3_artist_ids` and `v3_genre_ids` to use ids from your new dataset. Pass the hps `y_bins = (number_of_artists, number_of_genres)` and `max_bow_genre_size=1`. 
 - Timing: 
   - For each chunk of audio, we return the `total_length` of the song, the `offset` the current audio chunk is at and the `sample_length` of the audio chunk. We have three timing embeddings: total_length, our current position, and our current position as a fraction of the total length, and we divide the range of these values into `t_bins` discrete bins. 
   - Pass the hps `min_duration` and `max_duration` to be the shortest/longest duration of audio files, and `t_bins` for how many bins you want to discretize timing information into. 
+
+After these modifications, to train a top-level with labels, run
+```
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior_labels \
+--sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
+--labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
+--labels_v3=True --y_bins=({artists},{genres}) --max_bow_genre_size=1 --min_duration=60.0 --max_duration=600.0 --t_bins=64
+```
+
+#### With lyrics
+To train in addition with lyrics, update `get_metadata` in `data/files_dataset.py` to return `lyrics` too.
 - Lyrics: 
   - For each file, we linearly align the lyric characters to the audio, find the position in lyric that corresponds to the midpoint of our audio chunk, and pass a window of `n_tokens` lyric characters centred around that. 
   - Pass the hps `use_tokens=True` and `n_tokens` to be the number of lyric characters to use for an audio chunk. Set it according to the `sample_length` you're training on so that its large enough that the lyrics for an audio chunk are almost always found inside a window of that size.
@@ -126,7 +152,11 @@ We use 3 kinds of labels information:
 
 After these modifications, to train a top-level with labels and lyrics, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_lyric_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_lyric_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 --labels_v3=True --y_bins=({artists},{genres}) --max_bow_genre_size=1 --min_duration=60.0 --max_duration=600.0 --t_bins=64 --use_tokens=True --n_tokens=384 --n_vocab=79
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_lyric_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_lyric_prior_labels \
+--sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
+--labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
+--labels_v3=True --y_bins=({artists},{genres}) --max_bow_genre_size=1 --min_duration=60.0 --max_duration=600.0 --t_bins=64 \
+--use_tokens=True --n_tokens=384 --n_vocab=79
 ```
 To simplify hps choices, here we used a `single_enc_dec` model that combines both encoder and decoder of the transformer into a single model. We do so by merging the lyric vocab and vq-vae vocab into a single larger vocab, and flattening the lyric tokens and the vq-vae codes into a single sequence of length `n_ctx + n_tokens`.   
 

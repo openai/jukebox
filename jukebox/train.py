@@ -289,6 +289,7 @@ def run(hps="teeny", port=29500, **kwargs):
     hps = setup_hparams(hps, kwargs)
     hps.ngpus = dist.get_world_size()
     hps.argv = " ".join(sys.argv)
+    hps.bs_sample = hps.nworkers = hps.bs
 
     # Setup dataset
     data_processor = DataProcessor(hps)
