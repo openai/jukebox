@@ -1,7 +1,7 @@
 import librosa
 import math
 import numpy as np
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from torch.utils.data import Dataset
 from jukebox.utils.dist_utils import print_all
 from jukebox.utils.io import get_duration_sec, load_audio

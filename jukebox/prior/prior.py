@@ -1,7 +1,7 @@
 import numpy as np
 import torch as t
 import torch.nn as nn
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 
 from jukebox.transformer.ops import LayerNorm
 from jukebox.prior.autoregressive import ConditionalAutoregressive2D

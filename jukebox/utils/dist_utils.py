@@ -1,7 +1,7 @@
 import os
 from time import sleep
 import torch
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 
 def print_once(msg):
     if (not dist.is_available()) or dist.get_rank()==0:
@@ -42,6 +42,21 @@ def allgather_lists(xs):
 def setup_dist_from_mpi(
     master_addr="127.0.0.1", backend="nccl", port=29500, n_attempts=5, verbose=False
 ):
+    if dist.is_available():
+        return _setup_dist_from_mpi(master_addr, backend, port, n_attempts, verbose)
+    else:
+        use_cuda = torch.cuda.is_available()
+        print(f'Using cuda {use_cuda}')
+
+        mpi_rank = 0
+        local_rank = 0
+
+        device = torch.device("cuda", local_rank) if use_cuda else torch.device("cpu")
+        torch.cuda.set_device(local_rank)
+
+        return mpi_rank, local_rank, device
+
+def _setup_dist_from_mpi(master_addr, backend, port, n_attempts, verbose):
     from mpi4py import MPI  # This must be imported in order to get e   rrors from all ranks to show up
 
     mpi_rank = MPI.COMM_WORLD.Get_rank()
