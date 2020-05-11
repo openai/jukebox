@@ -5,20 +5,14 @@ class ReduceOp(Enum):
     SUM = 0,
     PRODUCT = 1,
     MIN = 2,
-    MAX = 3,
-    BAND = 4, # Bitwise AND
-    BOR = 5, # Bitwise OR
-    BXOR = 6, # Bitwise XOR
+    MAX = 3
 
     def ToDistOp(self):
         return {
             self.SUM: dist.ReduceOp.SUM,
             self.PRODUCT: dist.ReduceOp.PRODUCT,
             self.MIN: dist.ReduceOp.MIN,
-            self.MAX: dist.ReduceOp.MAX,
-            self.BAND: dist.ReduceOp.BAND,
-            self.BOR: dist.ReduceOp.BOR,
-            self.BXOR: dist.ReduceOp.BXOR
+            self.MAX: dist.ReduceOp.MAX
         }[self]
 
 def is_available():
@@ -82,7 +76,7 @@ def _all_gather(tensor_list, tensor):
 def _all_reduce(tensor, op):
     return dist.all_reduce(tensor, op.ToDistOp())
 
-def _reduce(tensor, dst, op=ReduceOp.SUM):
+def _reduce(tensor, dst, op):
     return dist.reduce(tensor, dst, op.ToDistOp())
 
 def _broadcast(tensor, src):
