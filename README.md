@@ -98,17 +98,32 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
 
-### Reuse pre-trained VQ-VAE and retrain top level prior on new dataset.
+### Reuse pre-trained VQ-VAE and train top-level prior on new dataset from scratch.
 Our pre-trained VQ-VAE can produce compressed codes for a wide variety of genres of music, and the pre-trained upsamplers can upsample them back to audio that sound very similar to the original audio.
 To re-use these for a new dataset of your choice, you can retrain just the top-level  
 
-To retrain top-level on a new dataset, run
+To train top-level on a new dataset, run
 ```
-mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior --sample_length=1048576 --bs=4 --nworkers=4 --bs_sample=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 --lr_use_linear_decay --lr_decay={decay_steps_as_needed}
 ```
 
 You can then run sample.py with the top-level of our models replaced by your new model. To do so, add an entry `my_model` in MODELs (in `make_models.py`) with the (vqvae hps, upsampler hps, top-level prior hps) of your new model, and run sample.py with `--model=my_model`. 
-	
+
+Training the `small_prior` with a batch size of 2, 4, and 8 requires 6.7 GB, 9.3 GB, and 15.8 GB of GPU memory, respectively. A few days to a week of training typically yields reasonable samples when the dataset is homogeneous (e.g. all piano pieces, songs of the same style, etc).
+
+### Fine-tune pre-trained top-level prior to new style(s)
+
+Previously, we showed how to train a small top-level prior from scratch. Assuming you have a GPU with at least 15 GB of memory and support for fp16, you could fine-tune from our pre-trained 1B top-level prior. Here are the steps:
+
+1. Support `--labels=True` by implementing `get_metadata` in `jukebox/data/files_dataset.py` for your dataset.
+2. Add new entries in `jukebox/data/ids`. 
+  * We recommend replacing existing mappings (e.g. rename `"unknown"`, etc with styles of your choice; you will have to create a new branch for this). This uses the pre-trained style vectors as initialization and could potentially save some compute.
+3. Run
+```
+mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,prior_1b_lyrics,all_fp16,cpu_ema --name=finetuned --sample_length=1048576 --bs=1 --nworkers=1 --bs_sample=1 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 --min_duration=17.84 --max_duration=600 --c_res=1 --lr_use_linear_decay --lr_decay={decay_steps_as_needed}
+```
+
+Training the 5B top-level requires GPipe which is not supported in this release.
 
 # Citation
 
