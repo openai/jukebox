@@ -139,7 +139,7 @@ We use 2 kinds of labels information:
   - Update the `v3_artist_ids` and `v3_genre_ids` to use ids from your new dataset. Pass the hps `y_bins = (number_of_genres, number_of_artists)` and `max_bow_genre_size=1`. 
 - Timing: 
   - For each chunk of audio, we return the `total_length` of the song, the `offset` the current audio chunk is at and the `sample_length` of the audio chunk. We have three timing embeddings: total_length, our current position, and our current position as a fraction of the total length, and we divide the range of these values into `t_bins` discrete bins. 
-  - Pass the hps `min_duration` and `max_duration` to be the shortest/longest duration of audio files, and `t_bins` for how many bins you want to discretize timing information into. 
+  - Pass the hps `min_duration` and `max_duration` to be the shortest/longest duration of audio files you want for your dataset, and `t_bins` for how many bins you want to discretize timing information into. Note `min_duration * sr` needs to be at least `sample_length` to have an audio chunk in it.
 
 After these modifications, to train a top-level with labels, run
 ```
