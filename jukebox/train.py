@@ -10,7 +10,7 @@ import fire
 import warnings
 import numpy as np
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from torch.nn.parallel import DistributedDataParallel
 
 from jukebox.hparams import setup_hparams
@@ -33,13 +33,10 @@ def log_aud(logger, tag, x, hps):
 
 def log_labels(logger, labeller, tag, y, hps):
     y = y.cpu().numpy()
-    attrs = ["artist", "genre", "lyrics"]
-    labels = []
     for item in range(y.shape[0]):
-        meta = labeller.describe_label(y[item])
-        meta = [("sample", item), *list(map(lambda attr: (attr, meta[attr]), attrs))]
-        labels.append(json.dumps(OrderedDict(meta)))
-    txt = "\n".join(labels)
+        description = labeller.describe_label(y)
+        artist, genre, lyrics = description['artist'], description['genre'], description['lyrics']
+        txt += f'{item} artist:{artist}, genre:{genre}, lyrics:{lyrics}'
     logger.add_text(tag, txt)
     logger.flush()
 
@@ -146,7 +143,7 @@ def sample_prior(orig_model, ema, logger, x_in, y, hps):
 
     # Recons
     for i in range(len(x_ds)):
-        log_aud(logger, f'sample_x_ds_start_{i}', x_ds[i], hps)
+        log_aud(logger, f'x_ds_start_{i}', x_ds[i], hps)
     orig_model.train()
     if ema is not None: ema.swap()
     logger.flush()
@@ -298,6 +295,7 @@ def run(hps="teeny", port=29500, **kwargs):
     hps = setup_hparams(hps, kwargs)
     hps.ngpus = dist.get_world_size()
     hps.argv = " ".join(sys.argv)
+    hps.bs_sample = hps.nworkers = hps.bs
 
     # Setup dataset
     data_processor = DataProcessor(hps)

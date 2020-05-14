@@ -1,7 +1,7 @@
 import numpy as np
 import av
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 
 def get_duration_sec(file, cache=False):
     try:

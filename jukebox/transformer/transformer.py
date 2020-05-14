@@ -2,7 +2,7 @@ import functools
 import numpy as np
 import torch as t
 import torch.nn as nn
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 
 from jukebox.transformer.ops import Conv1D, ACT_FNS, LayerNorm
 from jukebox.transformer.factored_attention import FactoredAttention
@@ -116,11 +116,11 @@ class Transformer(nn.Module):
                      5: lambda d: [1,4,1,1][d % 4],      # Alternate row, last column, row, row
                      6: lambda d: [1,2,3,6][d % 4],
                      7: lambda d: [*[1,2,3]*5,6][d%16],
-                     8: lambda d: [1,2,3,1,2,3,1,2,3,6][d%10],
+                     8: lambda d: [1,2,3,1,2,3,1,2,3,6][d%10], # Used by separated_enc_dec model with lyrics
                      9: lambda d: [1,2,3,0][d % 4],
-                     10: lambda d: [*[1,2,3,1,2,3,1,2,3],*[1,2,3,1,2,3,1,2,3,6]*7][d%79],
+                     10: lambda d: [*[1,2,3,1,2,3,1,2,3],*[1,2,3,1,2,3,1,2,3,6]*7][d%79], # Used by large separated_enc_dec model with lyrics
                      11: lambda d: [6,6,0][d%3] if d%16 == 15 else [1,2,3][d%3],
-                     12: lambda d: [7,7,0][d%3] if d%16 == 15 else [1,2,3][d%3],
+                     12: lambda d: [7,7,0][d%3] if d%16 == 15 else [1,2,3][d%3], # Used by single_enc_dec model with lyrics
                      }[attn_order]
 
         attn_cycle = {0:1, 1:2, 2:3, 3:2, 4:2, 5:4, 6:4, 7:16, 8:10, 9:4, 10:79, 11:16, 12:16}[attn_order]

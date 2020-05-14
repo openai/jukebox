@@ -1,5 +1,5 @@
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader, Dataset, BatchSampler, RandomSampler
 from jukebox.utils.dist_utils import print_all

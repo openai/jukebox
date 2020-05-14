@@ -6,7 +6,7 @@ Test on dummy outputs to see if everything matches
 import os
 import numpy as np
 import torch as t
-import torch.distributed as dist
+import jukebox.utils.dist_adapter as dist
 from jukebox.hparams import Hyperparams, setup_hparams
 from jukebox.utils.gcs_utils import download
 from jukebox.utils.torch_utils import freeze_model
