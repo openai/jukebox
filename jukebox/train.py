@@ -3,8 +3,6 @@ Ability to train vq-vae and prior
 First try for random inputs
 Then from maestros
 """
-from collections import OrderedDict
-import json
 import sys
 import fire
 import warnings
