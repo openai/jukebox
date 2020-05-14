@@ -217,6 +217,18 @@ small_prior = Hyperparams(
 )
 HPARAMS_REGISTRY["small_prior"] = small_prior
 
+small_labelled_prior = Hyperparams(
+    labels=True,
+    labels_v3=True,
+    y_bins=(10,100), # Set this to (genres, artists) for your dataset
+    max_bow_genre_size=1,
+    min_duration=60.0,
+    max_duration=600.0,
+    t_bins=64,
+)
+small_labelled_prior.update(small_prior)
+HPARAMS_REGISTRY["small_labelled_prior"] = small_labelled_prior
+
 small_single_enc_dec_prior = Hyperparams(
     n_ctx=6144,
     prior_width=1024,
@@ -226,10 +238,18 @@ small_single_enc_dec_prior = Hyperparams(
     blocks=64,
     init_scale=0.7,
     c_res=1,
-    use_tokens=True,
-    n_tokens=384,
     prime_loss_fraction=0.4,
     single_enc_dec=True,
+    labels=True,
+    labels_v3=True,
+    y_bins=(10,100), # Set this to (genres, artists) for your dataset
+    max_bow_genre_size=1,
+    min_duration=60.0,
+    max_duration=600.0,
+    t_bins=64,
+    use_tokens=True,
+    n_tokens=384,
+    n_vocab=79,
 )
 HPARAMS_REGISTRY["small_single_enc_dec_prior"] = small_single_enc_dec_prior
 
@@ -249,9 +269,17 @@ small_sep_enc_dec_prior = Hyperparams(
     prime_blocks=32,
     prime_init_scale=0.7,
     prime_c_res=1,
+    prime_loss_fraction=0.4,
+    labels=True,
+    labels_v3=True,
+    y_bins=(10,100), # Set this to (genres, artists) for your dataset
+    max_bow_genre_size=1,
+    min_duration=60.0,
+    max_duration=600.0,
+    t_bins=64,
     use_tokens=True,
     n_tokens=384,
-    prime_loss_fraction=0.4,
+    n_vocab=79,
 )
 HPARAMS_REGISTRY["small_sep_enc_dec_prior"] = small_sep_enc_dec_prior
 
