@@ -172,6 +172,7 @@ prior_1b_lyrics = Hyperparams(
     attn_order=12,
     blocks=64,
     init_scale=0.2,
+    c_res=1,
     labels_v3=True,
     min_duration=17.84,
     max_duration=600.0,

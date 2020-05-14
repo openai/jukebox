@@ -46,7 +46,6 @@ class FilesAudioDataset(Dataset):
         if self.labels:
             self.labeller = Labeller(hps.max_bow_genre_size, hps.n_tokens, self.sample_length, v3=hps.labels_v3)
 
-
     def get_index_offset(self, item):
         # For a given dataset item and shift, return song index and offset within song
         half_interval = self.sample_length//2
@@ -66,8 +65,16 @@ class FilesAudioDataset(Dataset):
         return index, offset
 
     def get_metadata(self, filename, test):
-        # Insert metadata loading code for your dataset here.
-        # If artist/genre labels are different from provided artist/genre lists, update labeller accordingly
+        """
+        Insert metadata loading code for your dataset here.
+        If artist/genre labels are different from provided artist/genre lists,
+        update labeller accordingly.
+
+        Returns:
+            (artist, genre, full_lyrics) of type (str, str, str). For
+            example, ("unknown", "classical", "") could be a metadata for a
+            piano piece.
+        """
         return None, None, None
 
     def get_song_chunk(self, index, offset, test=False):

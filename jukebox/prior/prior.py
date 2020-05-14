@@ -340,7 +340,8 @@ class SimplePrior(nn.Module):
             return loss, metrics
 
     def forward(self, x, y=None, fp16=False, decode=False, get_preds=False):
-        z, *z_conds = self.encode(x)
+        bs = x.shape[0]
+        z, *z_conds = self.encode(x, bs_chunks=bs)
         loss, metrics = self.z_forward(z=z, z_conds=z_conds, y=y, fp16=fp16, get_preds=get_preds)
         if decode:
             x_out = self.decode([z, *z_conds])
