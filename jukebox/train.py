@@ -33,7 +33,9 @@ def log_labels(logger, labeller, tag, y, hps):
     y = y.cpu().numpy()
     txt = f''
     for item in range(y.shape[0]):
-        txt += labeller.describe_label(y)
+        description = labeller.describe_label(y)
+        artist, genre, lyrics = description['artist'], description['genre'], description['lyrics']
+        txt += f'{item} artist:{artist}, genre:{genre}, lyrics:{lyrics}'
     logger.add_text(tag, txt)
     logger.flush()
 
@@ -138,7 +140,7 @@ def sample_prior(orig_model, ema, logger, x_in, y, hps):
 
     # Recons
     for i in range(len(x_ds)):
-        log_aud(logger, f'sample_x_ds_start_{i}', x_ds[i], hps)
+        log_aud(logger, f'x_ds_start_{i}', x_ds[i], hps)
     orig_model.train()
     if ema is not None: ema.swap()
     logger.flush()
