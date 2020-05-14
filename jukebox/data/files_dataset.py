@@ -46,10 +46,6 @@ class FilesAudioDataset(Dataset):
         if self.labels:
             self.labeller = Labeller(hps.max_bow_genre_size, hps.n_tokens, self.sample_length, v3=hps.labels_v3)
 
-        self.t_ranges = hps.t_ranges = ((self.min_duration*self.sr, self.max_duration*self.sr), # Total length
-                                        (0.0,self.max_duration*self.sr),                        # Absolute pos
-                                        (0.0,1.0))                                              # Relative pos
-
 
     def get_index_offset(self, item):
         # For a given dataset item and shift, return song index and offset within song

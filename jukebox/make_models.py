@@ -116,15 +116,10 @@ def make_prior(hps, vqvae, device='cuda'):
                          dilation_growth_rate=hps.cond_dilation_growth_rate, dilation_cycle=hps.cond_dilation_cycle,
                          zero_out=hps.cond_zero_out, res_scale=hps.cond_res_scale,
                          checkpoint_res=hps.cond_c_res)  # have to keep this else names wrong
-    if hps.labels and hps.level == hps.levels - 1 and hps.t_ranges == None:
-        print_all("Setting t_ranges from min/max duration")
-        hps.t_ranges = ((hps.min_duration * hps.sr, hps.max_duration * hps.sr),  # Total length
-                        (0.0, hps.max_duration * hps.sr),  # Absolute pos
-                        (0.0, 1.0))  # Relative pos
-    y_cond_kwargs = dict(out_width=hps.prior_width, init_scale=hps.init_scale,
-                         y_bins=hps.y_bins, t_bins=hps.t_bins, t_ranges=hps.t_ranges,
-                         max_bow_genre_size=hps.max_bow_genre_size)
 
+    y_cond_kwargs = dict(out_width=hps.prior_width, init_scale=hps.init_scale,
+                         y_bins=hps.y_bins, t_bins=hps.t_bins, sr= hps.sr, min_duration=hps.min_duration,
+                         max_duration=hps.max_duration, max_bow_genre_size=hps.max_bow_genre_size)
 
     if hps.use_tokens and not hps.single_enc_dec:
         prime_kwargs = dict(use_tokens=hps.use_tokens, prime_loss_fraction=hps.prime_loss_fraction,

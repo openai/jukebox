@@ -111,7 +111,7 @@ class RangeEmbedding(nn.Module):
         return self.emb(bins)
 
 class LabelConditioner(nn.Module):
-    def __init__(self, y_bins, t_bins, t_ranges, n_time, out_width, init_scale, max_bow_genre_size, include_time_signal):
+    def __init__(self, y_bins, t_bins, sr, min_duration, max_duration, n_time, out_width, init_scale, max_bow_genre_size, include_time_signal):
         super().__init__()
         self.n_time = n_time
         self.out_width = out_width
@@ -122,6 +122,9 @@ class LabelConditioner(nn.Module):
         self.artist_emb = SimpleEmbedding(artist_bins, out_width, init_scale)
         self.include_time_signal = include_time_signal
         if self.include_time_signal:
+            t_ranges = ((min_duration * sr, max_duration * sr),  # Total length
+                        (0.0, max_duration * sr),                # Absolute pos
+                        (0.0, 1.0))                              # Relative pos
             assert len(t_ranges) == 3, f"Expecting (total, absolute, relative) ranges, got {t_ranges}"
             total_length_range, absolute_pos_range, relative_pos_range = t_ranges
             self.total_length_emb = RangeEmbedding(1, t_bins, total_length_range, out_width, init_scale)
