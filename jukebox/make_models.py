@@ -116,7 +116,7 @@ def make_prior(hps, vqvae, device='cuda'):
                          dilation_growth_rate=hps.cond_dilation_growth_rate, dilation_cycle=hps.cond_dilation_cycle,
                          zero_out=hps.cond_zero_out, res_scale=hps.cond_res_scale,
                          checkpoint_res=hps.cond_c_res)  # have to keep this else names wrong
-    if hps.labels and hps.t_ranges == None:
+    if hps.labels and hps.level == hps.levels - 1 and hps.t_ranges == None:
         print_all("Setting t_ranges from min/max duration")
         hps.t_ranges = ((hps.min_duration * hps.sr, hps.max_duration * hps.sr),  # Total length
                         (0.0, hps.max_duration * hps.sr),  # Absolute pos
