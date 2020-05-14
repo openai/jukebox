@@ -219,10 +219,9 @@ Previously, we showed how to train a small top-level prior from scratch. Assumin
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,prior_1b_lyrics,all_fp16,cpu_ema --name=finetuned \
 --sample_length=1048576 --bs=1 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
---labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
---lr_use_linear_decay --lr_decay={decay_steps_as_needed}
+--labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
-Training the 5B top-level requires GPipe which is not supported in this release.
+To get the best sample quality, it is highly recommended to anneal the learning rate in the end. Training the 5B top-level requires GPipe which is not supported in this release.
 
 # Citation
 
