@@ -112,7 +112,7 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_prior,all_fp1
 To train the upsampler, we can run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all_fp16,cpu_ema --name=small_upsampler \
---sample_length=262144 --bs=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift \--aug_blend \
+--sample_length=262144 --bs=4 --audio_files_dir={audio_files_dir} --labels=False --train --test --aug_shift --aug_blend \
 --restore_vqvae=logs/small_vqvae/checkpoint_latest.pth.tar --prior --levels=2 --level=0 --weight_decay=0.01 --save_iters=1000
 ```
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
@@ -221,7 +221,7 @@ Previously, we showed how to train a small top-level prior from scratch. Assumin
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,prior_1b_lyrics,all_fp16,cpu_ema --name=finetuned \
 --sample_length=1048576 --bs=1 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
---min_duration=17.84 --max_duration=600 --c_res=1 --lr_use_linear_decay --lr_decay={decay_steps_as_needed}
+--lr_use_linear_decay --lr_decay={decay_steps_as_needed}
 ```
 Training the 5B top-level requires GPipe which is not supported in this release.
 

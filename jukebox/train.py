@@ -33,10 +33,11 @@ def log_aud(logger, tag, x, hps):
 
 def log_labels(logger, labeller, tag, y, hps):
     y = y.cpu().numpy()
+    txt = ''
     for item in range(y.shape[0]):
-        description = labeller.describe_label(y)
+        description = labeller.describe_label(y[item])
         artist, genre, lyrics = description['artist'], description['genre'], description['lyrics']
-        txt += f'{item} artist:{artist}, genre:{genre}, lyrics:{lyrics}'
+        txt += f'{item} artist:{artist}, genre:{genre}, lyrics:{lyrics}\n'
     logger.add_text(tag, txt)
     logger.flush()
 
