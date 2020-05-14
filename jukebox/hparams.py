@@ -217,6 +217,44 @@ small_prior = Hyperparams(
 )
 HPARAMS_REGISTRY["small_prior"] = small_prior
 
+small_single_enc_dec_prior = Hyperparams(
+    n_ctx=6144,
+    prior_width=1024,
+    prior_depth=48,
+    heads=2,
+    attn_order=12,
+    blocks=64,
+    init_scale=0.7,
+    c_res=1,
+    use_tokens=True,
+    n_tokens=384,
+    prime_loss_fraction=0.4,
+    single_enc_dec=True,
+)
+HPARAMS_REGISTRY["small_single_enc_dec_prior"] = small_single_enc_dec_prior
+
+small_sep_enc_dec_prior = Hyperparams(
+    n_ctx=6144,
+    prior_width=1024,
+    prior_depth=50,
+    heads=2,
+    attn_order=8,
+    blocks=64,
+    init_scale=0.7,
+    c_res=1,
+    prime_width=256,
+    prime_depth=9,
+    prime_heads=2,
+    prime_attn_order=2,
+    prime_blocks=32,
+    prime_init_scale=0.7,
+    prime_c_res=1,
+    use_tokens=True,
+    n_tokens=384,
+    prime_loss_fraction=0.4,
+)
+HPARAMS_REGISTRY["small_sep_enc_dec_prior"] = small_sep_enc_dec_prior
+
 small_upsampler = Hyperparams(
     n_ctx=8192,
     prior_width=1024,
@@ -250,6 +288,7 @@ cpu_ema = Hyperparams(
     ema_fused=False,
 )
 HPARAMS_REGISTRY["cpu_ema"] = cpu_ema
+
 
 DEFAULTS["rcall"] = Hyperparams(
     rcall_command="<unknown_rcall_command>",

@@ -14,10 +14,15 @@ from jukebox.vqvae.vqvae import calculate_strides
 
 
 """
-TODO: Simplify this into an easier structure
-
-enc-dec prior vs single-transformer prior
-remove the vqvae pre-post processing into a separate vqvae-coder class
+Model the prior on vq codes conditioned on timing, artist, genre, lyrics and codes from levels above. 
+To condition on the timing, genre and artist, we use the LabelConditioner class
+To condition on the codes from the level above, we use the Conditioner class
+To condition on lyrics, we allow two types of priors:
+- Separate Encoder Decoder: This is the usual encoder-decoder style transformer. The encoder transformer autoregressively 
+models the lyrics, and we use its last layer to produce keys/values that are attened to by the decoder transformer
+- Single Encoder Decoder: This is a simplification where we combine them into a single model. We merge the text vocab 
+and VQ vocab into a single large vocab, and the lyric tokens and VQ tokens into a single longer sequence of tokens which 
+we autoregressively model together.
 """
 class SimplePrior(nn.Module):
     def __init__(self, z_shapes, l_bins, encoder, decoder, level,
