@@ -407,7 +407,6 @@ DEFAULTS["prior"] = Hyperparams(
     level=0,
     cond_levels=None,
     t_bins=64,
-    t_ranges=None,
     y_cond_as_bias=False,
     copy_input=False,
     merged_decoder=False,
