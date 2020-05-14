@@ -118,6 +118,13 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
 
+### Learning rate annealing
+To get the best sample quality anneal the learning rate to 0 near the end of training. To do so, continue training from the latest 
+checkpoint and run with
+```
+--restore_prior="path/to/checkpoint" --lr_use_linear_decay --lr_start_linear_decay={already_trained_steps} --lr_decay={decay_steps_as_needed}
+```
+
 ### Reuse pre-trained VQ-VAE and retrain top level prior on new dataset.
 #### Train without labels
 Our pre-trained VQ-VAE can produce compressed codes for a wide variety of genres of music, and the pre-trained upsamplers 
@@ -130,6 +137,8 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_
 --sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
+
+Near the end of training, follow [this](#learning-rate-annealing) to anneal the learning rate to 0
 
 #### Sample from new model
 You can then run sample.py with the top-level of our models replaced by your new model. To do so,
