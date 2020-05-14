@@ -15,8 +15,8 @@ Install the conda package manager from https://docs.conda.io/en/latest/miniconda
 # Required: Sampling
 conda create --name jukebox python=3.7.5
 conda activate jukebox
+conda install mpi4py=3.0.3 # if this fails, try: pip install mpi4py==3.0.3
 conda install pytorch=1.4 torchvision=0.5 cudatoolkit=10.0 -c pytorch
-pip install mpi4py==3.0.3
 git clone https://github.com/openai/jukebox.git
 cd jukebox
 pip install -r requirements.txt
