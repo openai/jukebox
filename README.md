@@ -173,7 +173,7 @@ After these modifications, to train a top-level with labels, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_labelled_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_prior_labels \
 --sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
---labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
+--labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 
 For sampling, follow same instructions as [above](#sample-from-new-model) but use `small_labelled_prior` instead of `small_prior`.  
@@ -195,7 +195,7 @@ After these modifications, to train a top-level with labels and lyrics, run
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_single_enc_dec_prior,all_fp16,cpu_ema --name=pretrained_vqvae_small_single_enc_dec_prior_labels \
 --sample_length=786432 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
---labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
+--labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 To simplify hps choices, here we used a `single_enc_dec` model like the `1b_lyrics` model that combines both encoder and 
 decoder of the transformer into a single model. We do so by merging the lyric vocab and vq-vae vocab into a single 
