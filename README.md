@@ -119,7 +119,7 @@ We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
 
 ### Reuse pre-trained VQ-VAE and retrain top level prior on new dataset.
-#### No labels
+#### Train without labels
 Our pre-trained VQ-VAE can produce compressed codes for a wide variety of genres of music, and the pre-trained upsamplers 
 can upsample them back to audio that sound very similar to the original audio.
 To re-use these for a new dataset of your choice, you can retrain just the top-level  
@@ -130,6 +130,8 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_
 --sample_length=1048576 --bs=4 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
+
+#### Sample from new model
 You can then run sample.py with the top-level of our models replaced by your new model. To do so,
 - Add an entry `my_model=("vqvae", "upsampler_level_0", "upsampler_level_1", "small_prior")` in `MODELS` in `make_models.py`. 
 - Update the `small_prior` dictionary in `hparams.py` to include `restore_prior='path/to/checkpoint'`. If you
@@ -137,7 +139,7 @@ you changed any hps directly in the command line script (eg:`heads`), make sure 
 that `make_models` restores our checkpoint correctly.
 - Run sample.py as outlined in the sampling section, but now with `--model=my_model` 
 
-#### With labels 
+#### Train with labels 
 To train with you own metadata for your audio files, implement `get_metadata` in `data/files_dataset.py` to return the 
 `artist`, `genre` and `lyrics` for a given audio file. For now, you can pass `''` for lyrics to not use any lyrics.
 
@@ -164,9 +166,9 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_labelled_prior,all_
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
 ```
 
-For sampling, follow same instructions as [above](#no-labels) but use `small_labelled_prior` instead of `small_prior`.  
+For sampling, follow same instructions as [above](#sample-from-new-model) but use `small_labelled_prior` instead of `small_prior`.  
 
-#### With lyrics
+#### Train with lyrics
 To train in addition with lyrics, update `get_metadata` in `data/files_dataset.py` to return `lyrics` too.
 For training with lyrics, we'll use `small_single_enc_dec_prior` in `hparams.py`. 
 - Lyrics: 
