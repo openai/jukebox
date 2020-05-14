@@ -118,6 +118,13 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=small_vqvae,small_upsampler,all
 We pass `sample_length = n_ctx * downsample_of_level` so that after downsampling the tokens match the n_ctx of the prior hps. 
 Here, `n_ctx = 8192` and `downsamples = (32, 256)`, giving `sample_lengths = (8192 * 32, 8192 * 256) = (65536, 2097152)` respectively for the bottom and top level. 
 
+### Learning rate annealing
+To get the best sample quality anneal the learning rate to 0 near the end of training. To do so, continue training from the latest 
+checkpoint and run with
+```
+--restore_prior="path/to/checkpoint" --lr_use_linear_decay --lr_start_linear_decay={already_trained_steps} --lr_decay={decay_steps_as_needed}
+```
+
 ### Reuse pre-trained VQ-VAE and train top-level prior on new dataset from scratch.
 #### Train without labels
 Our pre-trained VQ-VAE can produce compressed codes for a wide variety of genres of music, and the pre-trained upsamplers 
@@ -132,6 +139,8 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_
 --lr_use_linear_decay --lr_decay={decay_steps_as_needed}
 ```
 Training the `small_prior` with a batch size of 2, 4, and 8 requires 6.7 GB, 9.3 GB, and 15.8 GB of GPU memory, respectively. A few days to a week of training typically yields reasonable samples when the dataset is homogeneous (e.g. all piano pieces, songs of the same style, etc).
+
+Near the end of training, follow [this](#learning-rate-annealing) to anneal the learning rate to 0
 
 #### Sample from new model
 You can then run sample.py with the top-level of our models replaced by your new model. To do so,
@@ -193,8 +202,13 @@ To simplify hps choices, here we used a `single_enc_dec` model like the `1b_lyri
 decoder of the transformer into a single model. We do so by merging the lyric vocab and vq-vae vocab into a single 
 larger vocab, and flattening the lyric tokens and the vq-vae codes into a single sequence of length `n_ctx + n_tokens`. 
 This uses `attn_order=12` which includes `prime_attention` layers with keys/values from lyrics and queries from audio. 
-
 If you instead want to use a model with the usual encoder-decoder style transformer, use `small_sep_enc_dec_prior`.
+
+For sampling, follow same instructions as [above](#sample-from-new-model) but use `small_single_enc_dec_prior` instead of 
+`small_prior`. To also get the alignment between lyrics and samples in the saved html, you'll need to set `alignment_layer` 
+and `alignment_head` in `small_single_enc_dec_prior`. To find which layer/head is best to use, run a forward pass on a training example,
+save the attention weight tensors for all prime_attention layers, and pick the (layer, head) which has the best linear alignment 
+pattern between the lyrics keys and music queries. 
 
 ### Fine-tune pre-trained top-level prior to new style(s)
 Previously, we showed how to train a small top-level prior from scratch. Assuming you have a GPU with at least 15 GB of memory and support for fp16, you could fine-tune from our pre-trained 1B top-level prior. Here are the steps:
