@@ -212,16 +212,16 @@ pattern between the lyrics keys and music queries.
 ### Fine-tune pre-trained top-level prior to new style(s)
 Previously, we showed how to train a small top-level prior from scratch. Assuming you have a GPU with at least 15 GB of memory and support for fp16, you could fine-tune from our pre-trained 1B top-level prior. Here are the steps:
 
-1. Support `--labels=True` by implementing `get_metadata` in `jukebox/data/files_dataset.py` for your dataset.
-2. Add new entries in `jukebox/data/ids`. 
-  * We recommend replacing existing mappings (e.g. rename `"unknown"`, etc with styles of your choice; you will have to create a new branch for this). This uses the pre-trained style vectors as initialization and could potentially save some compute.
-3. Run
+- Support `--labels=True` by implementing `get_metadata` in `jukebox/data/files_dataset.py` for your dataset.
+- Add new entries in `jukebox/data/ids`. We recommend replacing existing mappings (e.g. rename `"unknown"`, etc with styles of your choice). This uses the pre-trained style vectors as initialization and could potentially save some compute.
+
+After these modifications, run 
 ```
 mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,prior_1b_lyrics,all_fp16,cpu_ema --name=finetuned \
 --sample_length=1048576 --bs=1 --aug_shift --aug_blend --audio_files_dir={audio_files_dir} \
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
-To get the best sample quality, it is highly recommended to anneal the learning rate in the end. Training the 5B top-level requires GPipe which is not supported in this release.
+To get the best sample quality, it is recommended to anneal the learning rate in the end. Training the 5B top-level requires GPipe which is not supported in this release.
 
 # Citation
 
