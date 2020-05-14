@@ -131,8 +131,8 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_prior,all_fp16,cpu_
 --labels=False --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000
 ```
 You can then run sample.py with the top-level of our models replaced by your new model. To do so,
-- Add an entry `my_model=("vqvae", "upsampler_level_0", "upsampler_level_1", "small_prior")`  in MODELs in `make_models.py`. 
-- Update the `small_prior` dictionary in hparams.py to include `restore_prior='path/to/checkpoint'`. If you
+- Add an entry `my_model=("vqvae", "upsampler_level_0", "upsampler_level_1", "small_prior")` in `MODELS` in `make_models.py`. 
+- Update the `small_prior` dictionary in `hparams.py` to include `restore_prior='path/to/checkpoint'`. If you
 you changed any hps directly in the command line script (eg:`heads`), make sure to update them in the dictionary too so 
 that `make_models` restores our checkpoint correctly.
 - Run sample.py as outlined in the sampling section, but now with `--model=my_model` 
@@ -164,7 +164,7 @@ mpiexec -n {ngpus} python jukebox/train.py --hps=vqvae,small_labelled_prior,all_
 --labels=True --train --test --prior --levels=3 --level=2 --weight_decay=0.01 --save_iters=1000 \
 ```
 
-For sampling, follow same instructions as above but use `small_labelled_prior` instead of `small_prior`.  
+For sampling, follow same instructions as [above](#no-labels) but use `small_labelled_prior` instead of `small_prior`.  
 
 #### With lyrics
 To train in addition with lyrics, update `get_metadata` in `data/files_dataset.py` to return `lyrics` too.
