@@ -200,8 +200,13 @@ To simplify hps choices, here we used a `single_enc_dec` model like the `1b_lyri
 decoder of the transformer into a single model. We do so by merging the lyric vocab and vq-vae vocab into a single 
 larger vocab, and flattening the lyric tokens and the vq-vae codes into a single sequence of length `n_ctx + n_tokens`. 
 This uses `attn_order=12` which includes `prime_attention` layers with keys/values from lyrics and queries from audio. 
-
 If you instead want to use a model with the usual encoder-decoder style transformer, use `small_sep_enc_dec_prior`.
+
+For sampling, follow same instructions as [above](#sample-from-new-model) but use `small_single_enc_dec_prior` instead of 
+`small_prior`. To also get the alignment between lyrics and samples in the saved html, you'll need to set `alignment_layer` 
+and `alignment_head` in `small_single_enc_dec_prior`. To find which layer/head is best to use, run a forward pass on a training example,
+save the attention weight tensors for all prime_attention layers, and pick the (layer, head) which has the best linear alignment 
+pattern between the lyrics keys and music queries. 
 
 # Citation
 
