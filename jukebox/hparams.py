@@ -81,7 +81,6 @@ upsamplers = Hyperparams(
     prime_loss_fraction=0.0,
     fp16_params=False,
 )
-upsamplers.update(vqvae)
 upsamplers.update(labels)
 
 upsampler_level_0 = Hyperparams(
@@ -119,7 +118,6 @@ prior_5b = Hyperparams(
     restore_prior='gs://jukebox-assets/models/5b/prior_level_2.pth.tar',
     fp16_params=True,
 )
-prior_5b.update(vqvae)
 prior_5b.update(labels)
 HPARAMS_REGISTRY["prior_5b"] = prior_5b
 
@@ -152,7 +150,6 @@ prior_5b_lyrics = Hyperparams(
     alignment_layer=68,
     alignment_head=2,
 )
-prior_5b_lyrics.update(vqvae)
 prior_5b_lyrics.update(labels)
 HPARAMS_REGISTRY["prior_5b_lyrics"] = prior_5b_lyrics
 
@@ -185,7 +182,6 @@ prior_1b_lyrics = Hyperparams(
     alignment_layer=63,
     alignment_head=0,
 )
-prior_1b_lyrics.update(vqvae)
 prior_1b_lyrics.update(labels_v3)
 HPARAMS_REGISTRY["prior_1b_lyrics"] = prior_1b_lyrics
 

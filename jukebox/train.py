@@ -156,7 +156,7 @@ def evaluate(model, orig_model, logger, metrics, data_processor, hps):
         _print_keys = dict(l="loss", rl="recons_loss", sl="spectral_loss")
 
     with t.no_grad():
-        for i, x in logger.get_range(data_processor.train_loader):
+        for i, x in logger.get_range(data_processor.test_loader):
             if isinstance(x, (tuple, list)):
                 x, y = x
             else:
