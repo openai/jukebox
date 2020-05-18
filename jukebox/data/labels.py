@@ -88,8 +88,8 @@ class Labeller():
     def describe_label(self, y):
         assert y.shape == self.label_shape, f"Expected {self.label_shape}, got {y.shape}"
         y = np.array(y).tolist()
-        total_length, offset, length, artist_id, *genre_ids = y[:-self.n_tokens]
-        tokens = y[-self.n_tokens:]
+        total_length, offset, length, artist_id, *genre_ids = y[:4 + self.max_genre_words]
+        tokens = y[4 + self.max_genre_words:]
         artist = self.ag_processor.get_artist(artist_id)
         genre = self.ag_processor.get_genre(genre_ids)
         lyrics = self.text_processor.textise(tokens)
