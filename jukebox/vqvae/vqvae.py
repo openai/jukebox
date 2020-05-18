@@ -80,6 +80,8 @@ class VQVAE(nn.Module):
         else:
             self.bottleneck = NoBottleneck(levels)
 
+        self.downs_t = downs_t
+        self.strides_t = strides_t
         self.l_bins = l_bins
         self.commit = commit
         self.spectral = spectral

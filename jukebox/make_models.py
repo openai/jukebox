@@ -102,7 +102,7 @@ def make_vqvae(hps, device='cuda'):
 def make_prior(hps, vqvae, device='cuda'):
     from jukebox.prior.prior import SimplePrior
 
-    prior_kwargs = dict(input_shape=(hps.n_ctx,), bins=hps.l_bins,
+    prior_kwargs = dict(input_shape=(hps.n_ctx,), bins=vqvae.l_bins,
                         width=hps.prior_width, depth=hps.prior_depth, heads=hps.heads,
                         attn_order=hps.attn_order, blocks=hps.blocks, spread=hps.spread,
                         attn_dropout=hps.attn_dropout, resid_dropout=hps.resid_dropout, emb_dropout=hps.emb_dropout,
@@ -142,12 +142,12 @@ def make_prior(hps, vqvae, device='cuda'):
     z_shapes = [rescale(z_shape) for z_shape in vqvae.z_shapes]
 
     prior = SimplePrior(z_shapes=z_shapes,
-                        l_bins=hps.l_bins,
+                        l_bins=vqvae.l_bins,
                         encoder=vqvae.encode,
                         decoder=vqvae.decode,
                         level=hps.level,
-                        downs_t=hps.downs_t,
-                        strides_t=hps.strides_t,
+                        downs_t=vqvae.downs_t,
+                        strides_t=vqvae.strides_t,
                         labels=hps.labels,
                         prior_kwargs=prior_kwargs,
                         x_cond_kwargs=x_cond_kwargs,
