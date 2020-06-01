@@ -43,6 +43,7 @@ python jukebox/sample.py --model=1b_lyrics --name=sample_1b --levels=3 --sample_
 --total_sample_length_in_seconds=180 --sr=44100 --n_samples=16 --hop_fraction=0.5,0.5,0.125
 ```
 The above generates the first `sample_length_in_seconds` seconds of audio from a song of total length `total_sample_length_in_seconds`.
+To use multiple GPU's, launch the above scripts as `mpiexec -n {ngpus} python jukebox/sample.py ...` so they use `{ngpus}`
 
 The samples decoded from each level are stored in `{name}/level_{level}`. 
 You can also view the samples as an html with the aligned lyrics under `{name}/level_{level}/index.html`. 
