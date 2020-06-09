@@ -324,7 +324,6 @@ def run(hps="teeny", port=29500, **kwargs):
     for epoch in range(hps.curr_epoch, hps.epochs):
         metrics.reset()
         data_processor.set_epoch(epoch)
-        logger.epoch = epoch
         if hps.train:
             train_metrics = train(distributed_model, model, opt, shd, scalar, ema, logger, metrics, data_processor, hps)
             train_metrics['epoch'] = epoch
