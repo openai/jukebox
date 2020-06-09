@@ -12,7 +12,7 @@ import jukebox.utils.dist_adapter as dist
 from torch.nn.parallel import DistributedDataParallel
 
 from jukebox.hparams import setup_hparams
-from jukebox.make_models import make_vqvae, make_prior, save_checkpoint
+from jukebox.make_models import make_vqvae, make_prior, restore_opt, save_checkpoint
 from jukebox.utils.logger import init_logging
 from jukebox.utils.audio_utils import audio_preprocess, audio_postprocess
 from jukebox.utils.torch_utils import zero_grad, count_parameters
@@ -85,6 +85,9 @@ def get_optimizer(model, hps):
 
     # lr scheduler
     shd = get_lr_scheduler(opt, hps)
+
+    restore_path = hps.restore_prior if hps.prior else hps.restore_vqvae
+    restore_opt(opt, shd, restore_path)
 
     # fp16 dynamic loss scaler
     scalar = None
@@ -266,7 +269,7 @@ def train(model, orig_model, opt, shd, scalar, ema, logger, metrics, data_proces
                 orig_model.eval()
                 name = 'latest' if hps.prior else f'step_{logger.iters}'
                 if dist.get_rank() % 8 == 0:
-                    save_checkpoint(logger.logdir, name, orig_model, opt, dict(step=logger.iters), hps)
+                    save_checkpoint(logger, name, orig_model, opt, dict(step=logger.iters), hps)
                 orig_model.train()
                 if ema is not None: ema.swap()
 
@@ -321,6 +324,7 @@ def run(hps="teeny", port=29500, **kwargs):
     for epoch in range(hps.curr_epoch, hps.epochs):
         metrics.reset()
         data_processor.set_epoch(epoch)
+        logger.epoch = epoch
         if hps.train:
             train_metrics = train(distributed_model, model, opt, shd, scalar, ema, logger, metrics, data_processor, hps)
             train_metrics['epoch'] = epoch
