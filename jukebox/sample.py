@@ -1,6 +1,6 @@
 import os
-import numpy as np
 import torch as t
+import jukebox.utils.dist_adapter as dist
 
 from jukebox.hparams import Hyperparams
 from jukebox.utils.torch_utils import empty_cache
@@ -106,7 +106,10 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         # Decode sample
         x = prior.decode(zs[level:], start_level=level, bs_chunks=zs[level].shape[0])
 
-        logdir = f"{hps.name}/level_{level}"
+        if dist.get_world_size() > 1:
+            logdir = f"{hps.name}_rank_{dist.get_rank()}/level_{level}"
+        else:
+            logdir = f"{hps.name}/level_{level}"
         if not os.path.exists(logdir):
             os.makedirs(logdir)
         t.save(dict(zs=zs, labels=labels, sampling_kwargs=sampling_kwargs, x=x), f"{logdir}/data.pth.tar")
