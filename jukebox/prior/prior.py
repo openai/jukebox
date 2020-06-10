@@ -6,7 +6,7 @@ import jukebox.utils.dist_adapter as dist
 from jukebox.transformer.ops import LayerNorm
 from jukebox.prior.autoregressive import ConditionalAutoregressive2D
 from jukebox.prior.conditioners import Conditioner, LabelConditioner
-from jukebox.data.labels import Labeller
+from jukebox.data.labels import EmptyLabeller, Labeller
 
 from jukebox.utils.torch_utils import assert_shape
 from jukebox.utils.dist_utils import print_once
@@ -131,11 +131,15 @@ class SimplePrior(nn.Module):
         if labels:
             self.labels_v3 = labels_v3
             self.labeller = Labeller(self.y_emb.max_bow_genre_size, self.n_tokens, self.sample_length, v3=self.labels_v3)
+        else:
+            self.labeller = EmptyLabeller()
 
         print(f"Level:{level}, Cond downsample:{self.cond_downsample}, Raw to tokens:{self.raw_to_tokens}, Sample length:{self.sample_length}")
 
 
     def get_y(self, labels, start, get_indices=False):
+        if isinstance(self.labeller, EmptyLabeller):
+            return None
         y = labels['y'].clone()
 
         # Set sample_length to match this level
