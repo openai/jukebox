@@ -21,7 +21,7 @@ def get_relevant_lyric_tokens(full_tokens, n_tokens, total_length, offset, durat
 
 class EmptyLabeller():
     def get_label(self, artist=None, genre=None, lyrics=None, total_length=None, offset=None):
-        y = np.array([0], dtype=np.int64)
+        y = np.array([], dtype=np.int64)
         info = dict(artist="n/a", genre="n/a", lyrics=[], full_tokens=[])
         return dict(y=y, info=info)
 
