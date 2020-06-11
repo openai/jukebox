@@ -150,6 +150,46 @@ you changed any hps directly in the command line script (eg:`heads`), make sure 
 that `make_models` restores our checkpoint correctly.
 - Run sample.py as outlined in the sampling section, but now with `--model=my_model` 
 
+For example, let's say we trained `small_vqvae`, `small_prior`, and `small_upsampler` under `/path/to/jukebox/logs`. In `make_models.py`, we are going to declare a tuple of the new models as `my_model`.
+```
+MODELS = {
+    '5b': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b"),
+    '5b_lyrics': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b_lyrics"),
+    '1b_lyrics': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_1b_lyrics"),
+    'my_model': ("my_small_vqvae", "my_small_upsampler", "my_small_prior"),
+}
+```
+
+Next, in `hparams.py`, we add them to the registry with the corresponding `restore_`paths and any other command line options used during training. Another important note is that for top-level priors with lyric conditioning, we have to locate a self-attention layer that shows alignment between the lyric and music tokens. Look for layers where `prior.prior.transformer._attn_mods[layer].attn_func` is either 6 or 7. If your model is starting to sing along lyrics, it means some layer, head pair has learned alignment. Congrats!
+```
+my_small_vqvae = Hyperparams(
+    restore_vqvae='/path/to/jukebox/logs/small_vqvae/checkpoint_some_step.pth.tar',
+)
+my_small_vqvae.update(small_vqvae)
+HPARAMS_REGISTRY["my_small_vqvae"] = my_small_vqvae
+
+my_small_prior = Hyperparams(
+    restore_prior='/path/to/jukebox/logs/small_prior/checkpoint_latest.pth.tar',
+    level=1,
+    labels=False,
+    # TODO For the two lines below, if `--labels` was used and the model is
+    # trained with lyrics, find and enter the layer, head pair that has learned
+    # alignment.
+    alignment_layer=47,
+    alignment_head=0,
+)
+my_small_prior.update(small_prior)
+HPARAMS_REGISTRY["my_small_prior"] = my_small_prior
+
+my_small_upsampler = Hyperparams(
+    restore_prior='/path/to/jukebox/logs/small_upsampler/checkpoint_latest.pth.tar',
+    level=0,
+    labels=False,
+)
+my_small_upsampler.update(small_upsampler)
+HPARAMS_REGISTRY["my_small_upsampler"] = my_small_upsampler
+```
+
 #### Train with labels 
 To train with you own metadata for your audio files, implement `get_metadata` in `data/files_dataset.py` to return the 
 `artist`, `genre` and `lyrics` for a given audio file. For now, you can pass `''` for lyrics to not use any lyrics.

@@ -19,6 +19,25 @@ def get_relevant_lyric_tokens(full_tokens, n_tokens, total_length, offset, durat
     assert tokens == [full_tokens[index] if index != -1 else 0 for index in indices]
     return tokens, indices
 
+class EmptyLabeller():
+    def get_label(self, artist=None, genre=None, lyrics=None, total_length=None, offset=None):
+        y = np.array([], dtype=np.int64)
+        info = dict(artist="n/a", genre="n/a", lyrics=[], full_tokens=[])
+        return dict(y=y, info=info)
+
+    def get_batch_labels(self, metas, device='cpu'):
+        ys, infos = [], []
+        for meta in metas:
+            label = self.get_label()
+            y, info = label['y'], label['info']
+            ys.append(y)
+            infos.append(info)
+
+        ys = t.stack([t.from_numpy(y) for y in ys], dim=0).to(device).long()
+        assert ys.shape[0] == len(metas)
+        assert len(infos) == len(metas)
+        return dict(y=ys, info=infos)
+
 class Labeller():
     def __init__(self, max_genre_words, n_tokens, sample_length, v3=False):
         self.ag_processor = ArtistGenreProcessor(v3)
