@@ -1,8 +1,15 @@
-import os
 import sys
 import subprocess
-from time import time
 
+def download(remote_path, local_path, async_download=False):
+    args = ['wget', '-O', local_path, remote_path]
+    print("Running ", " ".join(args))
+    if async_download:
+        subprocess.Popen(args)
+    else:
+        subprocess.call(args)
+
+# GCE
 def gs_download(gs_path, local_path, async_download=False):
     args = ['gsutil',
             '-o', 'GSUtil:parallel_thread_count=1',
@@ -27,16 +34,9 @@ def gs_upload(local_path, gs_path, async_upload=False):
     else:
         subprocess.call(args)
 
-def download(gs_path, local_path, async_download=False):
-    remote_path = gs_path.replace("gs://", "https://storage.googleapis.com/")
-    args = ['wget', '-q', '-O', local_path, remote_path]
-    if async_download:
-        subprocess.Popen(args)
-    else:
-        subprocess.call(args)
-
 def ls(regex):
     outputs = subprocess.check_output(['gsutil', 'ls', regex]).decode(sys.stdout.encoding)
     outputs = outputs.split('\n')
     outputs = [output for output in outputs if output is not '']
     return outputs
+
