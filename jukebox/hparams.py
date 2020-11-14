@@ -33,6 +33,8 @@ easy = Hyperparams(
 )
 HPARAMS_REGISTRY["easy"] = easy
 
+REMOTE_PREFIX = 'https://openaipublic.azureedge.net/'
+
 # Model hps
 vqvae = Hyperparams(
     levels = 3,
@@ -52,7 +54,7 @@ vqvae = Hyperparams(
     depth = 4,
     m_conv = 1.0,
     dilation_growth_rate = 3,
-    restore_vqvae=f'https://openaipublic.blob.core.windows.net/jukebox/models/5b/vqvae.pth.tar',
+    restore_vqvae=REMOTE_PREFIX + 'jukebox/models/5b/vqvae.pth.tar',
 )
 HPARAMS_REGISTRY["vqvae"] = vqvae
 
@@ -85,7 +87,7 @@ upsamplers.update(labels)
 
 upsampler_level_0 = Hyperparams(
     level=0,
-    restore_prior='https://openaipublic.blob.core.windows.net/jukebox/models/5b/prior_level_0.pth.tar'
+    restore_prior=REMOTE_PREFIX + 'jukebox/models/5b/prior_level_0.pth.tar'
 )
 upsampler_level_0.update(upsamplers)
 HPARAMS_REGISTRY["upsampler_level_0"] = upsampler_level_0
@@ -93,7 +95,7 @@ HPARAMS_REGISTRY["upsampler_level_0"] = upsampler_level_0
 upsampler_level_1 = Hyperparams(
     level=1,
     cond_res_scale=True,
-    restore_prior='https://openaipublic.blob.core.windows.net/jukebox/models/5b/prior_level_1.pth.tar'
+    restore_prior=REMOTE_PREFIX + 'jukebox/models/5b/prior_level_1.pth.tar'
 )
 upsampler_level_1.update(upsamplers)
 HPARAMS_REGISTRY["upsampler_level_1"] = upsampler_level_1
@@ -115,7 +117,7 @@ prior_5b = Hyperparams(
     n_tokens=0,
     prime_loss_fraction=0.0,
     merged_decoder=True,
-    restore_prior='https://openaipublic.blob.core.windows.net/jukebox/models/5b/prior_level_2.pth.tar',
+    restore_prior=REMOTE_PREFIX + 'jukebox/models/5b/prior_level_2.pth.tar',
     fp16_params=True,
 )
 prior_5b.update(labels)
@@ -145,7 +147,7 @@ prior_5b_lyrics = Hyperparams(
     n_tokens=512,
     prime_loss_fraction=0.4,
     merged_decoder=True,
-    restore_prior='https://openaipublic.blob.core.windows.net/jukebox/models/5b_lyrics/prior_level_2.pth.tar',
+    restore_prior=REMOTE_PREFIX + 'jukebox/models/5b_lyrics/prior_level_2.pth.tar',
     fp16_params=True,
     alignment_layer=68,
     alignment_head=2,
@@ -177,7 +179,7 @@ prior_1b_lyrics = Hyperparams(
     n_tokens=384,
     prime_loss_fraction=0.4,
     single_enc_dec=True,
-    restore_prior='https://openaipublic.blob.core.windows.net/jukebox/models/1b_lyrics/prior_level_2.pth.tar',
+    restore_prior=REMOTE_PREFIX + 'jukebox/models/1b_lyrics/prior_level_2.pth.tar',
     fp16_params=False,
     alignment_layer=63,
     alignment_head=0,

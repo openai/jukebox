@@ -7,7 +7,7 @@ import os
 import numpy as np
 import torch as t
 import jukebox.utils.dist_adapter as dist
-from jukebox.hparams import Hyperparams, setup_hparams
+from jukebox.hparams import Hyperparams, setup_hparams, REMOTE_PREFIX
 from jukebox.utils.remote_utils import download
 from jukebox.utils.torch_utils import freeze_model
 from jukebox.utils.dist_utils import print_all
@@ -23,10 +23,9 @@ MODELS = {
 
 def load_checkpoint(path):
     restore = path
-    remote_prefix = 'https://openaipublic.blob.core.windows.net/'
-    if restore.startswith(remote_prefix):
+    if restore.startswith(REMOTE_PREFIX):
         remote_path = restore
-        local_path = os.path.join(os.path.expanduser("~/.cache"), remote_path[len(remote_prefix):])
+        local_path = os.path.join(os.path.expanduser("~/.cache"), remote_path[len(REMOTE_PREFIX):])
         if dist.get_rank() % 8 == 0:
             print("Downloading from azure")
             if not os.path.exists(os.path.dirname(local_path)):
