@@ -36,37 +36,7 @@ A heart so true
 Our courage will pull us through
 You teach me, and I'll teach you
 Pokemon!
-Gotta catch 'em all, gotta catch 'em all
-YeahEvery challenge along the way
-With courage I will face
-I will battle every day
-To claim my rightful placeCome with me, the time is right
-There's no better team
-Arm in arm, we'll win the fight
-It's always been our dream
-Pokemon! Gotta catch 'em all
-It's you and me
-I know it's my destiny
-Pokemon! Oh, you're my best friend
-In a world we must defendPokemon! Gotta catch 'em all
-A heart so true
-Our courage will pull us through
-You teach me, and I'll teach you
-Pokemon!
-Gotta catch 'em all, gotta catch 'em allGotta catch 'em all
-Gotta catch 'em all
-Gotta catch 'em all
-YeahPokémon! Gotta catch 'em all
-It's you and me
-I know it's my destiny
-Pokémon! Oh, you're my best friend
-In a world we must defendPokémon! Gotta catch 'em all
-A heart so true
-Our courage will pull us through
-You teach me, and I'll teach you
-Pokémon
-Gotta catch 'em all, gotta catch 'em all
-Pokémon               
+Gotta catch 'em all, gotta catch 'em all             
 '''
 } 
 
