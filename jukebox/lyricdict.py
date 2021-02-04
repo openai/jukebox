@@ -18,6 +18,30 @@ The lone and level sands stretch far away
 '''
 }
 
+# Manually added lyrics 
+
+anime_lyrics = {'pokemon':'''I wanna be the very best
+Like no one ever was
+To catch them is my real test
+To train them is my causeI will travel across the land
+Searching far and wide
+Teach Pokemon to understand
+The power that's insidePokemon! Gotta catch 'em all
+It's you and me
+I know it's my destiny
+Pokemon! Oh, you're my best friend
+In a world we must defend
+Pokemon! Gotta catch 'em all
+A heart so true
+Our courage will pull us through
+You teach me, and I'll teach you
+Pokemon!
+Gotta catch 'em all, gotta catch 'em all             
+'''
+} 
+
+    
+    
 # GPT-2 lyrics (with varying degrees of human guidance/curation)
 gpt_2_lyrics ={
 
