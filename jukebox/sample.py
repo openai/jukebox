@@ -34,7 +34,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     end = start + n_ctx
 
     # get z already sampled at current level
-    z = zs[level][:,start:end]
+    z = zs[level][:,start:end].to(prior.device)
 
     if 'sample_tokens' in sampling_kwargs:
         # Support sampling a window shorter than n_ctx
@@ -51,6 +51,10 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     
     # get z_conds from level above
     z_conds = prior.get_z_conds(zs, start, end)
+    
+    if z_conds != None:
+        for k in range(len(z_conds)):
+            z_conds[k] = z_conds[k].to(prior.device)
 
     # set y offset, sample_length and lyrics tokens
     y = prior.get_y(labels, start)
@@ -73,7 +77,9 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     sampling_kwargs['max_batch_size'] = max_batch_size
 
     # Update z with new sample
-    z_new = z[:,-new_tokens:]
+    z_new = z[:,-new_tokens:].cpu()
+    del z
+    del y
     zs[level] = t.cat([zs[level], z_new], dim=1)
     return zs
 
