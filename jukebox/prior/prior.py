@@ -157,7 +157,7 @@ class SimplePrior(nn.Module):
 
     def get_z_conds(self, zs, start, end):
         if self.level != self.levels - 1:
-            assert start % self.cond_downsample == end % self.cond_downsample
+            assert start % self.cond_downsample == end % self.cond_downsample == 0
             z_cond = zs[self.level + 1][:,start//self.cond_downsample:end//self.cond_downsample]
             assert z_cond.shape[1] == self.n_ctx//self.cond_downsample
             z_conds = [z_cond]
