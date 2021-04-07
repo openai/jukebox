@@ -71,16 +71,14 @@ class SimplePrior(nn.Module):
                                                           stride_t=strides_t[_level],
                                                           **x_cond_kwargs)
             if dist.get_rank() == 0: print(f"Conditioning on 1 above level(s)")
-            self.conditioner_blocks.append(conditioner_block(self.cond_level))
+            self.conditioner_blocks.append(conditioner_block(self.cond_level).to(device))
             if fp16: self.apply(_convert_conv_weights_to_fp16)
-            self = self.to(device)
             
         # Y conditioning
         if self.y_cond:
             self.n_time = self.z_shape[0] # Assuming STFT=TF order and raw=T1 order, so T is first dim
-            self.y_emb = LabelConditioner(n_time=self.n_time,include_time_signal=not self.x_cond,**y_cond_kwargs)
+            self.y_emb = LabelConditioner(n_time=self.n_time,include_time_signal=not self.x_cond,**y_cond_kwargs).to(device)
             if fp16: self.apply(_convert_conv_weights_to_fp16)
-            self = self.to(device)
 
         # Lyric conditioning
         if single_enc_dec:
@@ -129,7 +127,6 @@ class SimplePrior(nn.Module):
                                                      **prior_kwargs)
         
         if fp16: self.apply(_convert_conv_weights_to_fp16)
-        self = self.to(device)
         self.n_ctx = self.gen_loss_dims
         self.downsamples = calculate_strides(strides_t, downs_t)
         self.cond_downsample = self.downsamples[level+1] if level != self.levels - 1 else None
