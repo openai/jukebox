@@ -34,7 +34,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = t.load(restore, map_location=t.device('cpu'))
+    checkpoint = t.load(restore, map_location=t.device('cuda'))
     print("Restored from {}".format(restore))
     return checkpoint
 
