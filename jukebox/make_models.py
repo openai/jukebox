@@ -23,7 +23,7 @@ MODELS = {
 }
 
 fnc = joblib.load
-def wrap(*args, **kwargs)
+def wrap(*args, **kwargs):
     del kwargs['encoding']
     fnc(*args, **kwargs)
 joblib.load = wrap
