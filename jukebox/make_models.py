@@ -166,15 +166,12 @@ def make_prior(hps, vqvae, device='cuda'):
                         copy_input=hps.copy_input,
                         labels_v3=hps.labels_v3,
                         merged_decoder=hps.merged_decoder,
-                        single_enc_dec=hps.single_enc_dec)
+                        single_enc_dec=hps.single_enc_dec,
+                        fp16=hps.fp16_params)
 
     prior.alignment_head = hps.get('alignment_head', None)
     prior.alignment_layer = hps.get('alignment_layer', None)
-
-    if hps.fp16_params:
-        print_all("Converting to fp16 params")
-        from jukebox.transformer.ops import _convert_conv_weights_to_fp16
-        prior.apply(_convert_conv_weights_to_fp16)
+    
     prior = prior.to(device)
     prior.device = device
     restore_model(hps, prior, hps.restore_prior)
