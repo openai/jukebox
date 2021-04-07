@@ -25,7 +25,7 @@ MODELS = {
 
 def func(storage,location):
     t.cuda.empty_cache()
-    storage.apply(_convert_conv_weights_to_fp16)
+    print(dir(storage))
 
 def load_checkpoint(path):
     restore = path
