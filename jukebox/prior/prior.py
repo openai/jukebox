@@ -12,6 +12,7 @@ from jukebox.utils.torch_utils import assert_shape
 from jukebox.utils.dist_utils import print_once
 from jukebox.vqvae.vqvae import calculate_strides
 
+from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 
 """
 Model the prior on vq codes conditioned on timing, artist, genre, lyrics and codes from levels above. 
@@ -28,7 +29,7 @@ class SimplePrior(nn.Module):
     def __init__(self, z_shapes, l_bins, encoder, decoder, level,
                  downs_t, strides_t, labels, prior_kwargs, x_cond_kwargs, y_cond_kwargs,
                  prime_kwargs, copy_input, labels_v3=False,
-                 merged_decoder=False, single_enc_dec=False):
+                 merged_decoder=False, single_enc_dec=False, fp16=True):
         super().__init__()
 
         self.use_tokens = prime_kwargs.pop('use_tokens')
@@ -71,11 +72,13 @@ class SimplePrior(nn.Module):
                                                           **x_cond_kwargs)
             if dist.get_rank() == 0: print(f"Conditioning on 1 above level(s)")
             self.conditioner_blocks.append(conditioner_block(self.cond_level))
-
+            if fp16: self.apply(_convert_conv_weights_to_fp16)
+            
         # Y conditioning
         if self.y_cond:
             self.n_time = self.z_shape[0] # Assuming STFT=TF order and raw=T1 order, so T is first dim
             self.y_emb = LabelConditioner(n_time=self.n_time,include_time_signal=not self.x_cond,**y_cond_kwargs)
+            if fp16: self.apply(_convert_conv_weights_to_fp16)
 
         # Lyric conditioning
         if single_enc_dec:
@@ -99,7 +102,6 @@ class SimplePrior(nn.Module):
                                                      x_cond=(self.x_cond or self.y_cond), y_cond=True,
                                                      prime_len=self.prime_loss_dims,
                                                      **prior_kwargs)
-
         else:
             # Separate encoder-decoder transformer
             if self.n_tokens != 0 and self.use_tokens:
@@ -122,7 +124,8 @@ class SimplePrior(nn.Module):
             self.prior = ConditionalAutoregressive2D(x_cond=(self.x_cond or self.y_cond), y_cond=self.y_cond,
                                                      encoder_dims = self.prime_loss_dims, merged_decoder=merged_decoder,
                                                      **prior_kwargs)
-
+        
+        if fp16: self.apply(_convert_conv_weights_to_fp16)
         self.n_ctx = self.gen_loss_dims
         self.downsamples = calculate_strides(strides_t, downs_t)
         self.cond_downsample = self.downsamples[level+1] if level != self.levels - 1 else None
@@ -133,6 +136,7 @@ class SimplePrior(nn.Module):
             self.labeller = Labeller(self.y_emb.max_bow_genre_size, self.n_tokens, self.sample_length, v3=self.labels_v3)
         else:
             self.labeller = EmptyLabeller()
+        if fp16: self.apply(_convert_conv_weights_to_fp16)
 
         print(f"Level:{level}, Cond downsample:{self.cond_downsample}, Raw to tokens:{self.raw_to_tokens}, Sample length:{self.sample_length}")
 
