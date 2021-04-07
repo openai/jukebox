@@ -13,7 +13,6 @@ from jukebox.utils.torch_utils import freeze_model
 from jukebox.utils.dist_utils import print_all
 from jukebox.vqvae.vqvae import calculate_strides
 import fire
-from mmappickle import mmapdict
 
 MODELS = {
     '5b': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b"),
@@ -21,6 +20,9 @@ MODELS = {
     '1b_lyrics': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_1b_lyrics"),
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
+
+def func(storage,location):
+    print(storage)
 
 def load_checkpoint(path):
     restore = path
@@ -35,7 +37,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = mmapdict(restore, True) # t.load(restore, map_location=t.device('cpu'))
+    checkpoint = t.load(restore, map_location=func)
     print("Restored from {}".format(restore))
     return checkpoint
 
