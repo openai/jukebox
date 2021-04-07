@@ -139,8 +139,8 @@ class Transformer(nn.Module):
         self.checkpoint_res = checkpoint_res
         self._attn_mods = nn.ModuleList()
         for d in range(n_depth):
-            self._attn_mods.append(attn_block(d))
-            self = self.to(device)
+            print(d)
+            self._attn_mods.append(attn_block(d).to(device))
         self.ws = []
 
 
