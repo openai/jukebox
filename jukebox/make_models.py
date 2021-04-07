@@ -22,12 +22,6 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
-class obj(joblib):
-    def load(*args, **kwargs):
-        del kwargs['encoding']
-        super().load(*args, **kwargs)
-wrapper = obj()
-
 fnc = joblib.load
 def wrap(*args, **kwargs)
     del kwargs['encoding']
