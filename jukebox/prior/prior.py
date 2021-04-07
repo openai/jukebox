@@ -134,11 +134,10 @@ class SimplePrior(nn.Module):
         self.sample_length = self.n_ctx*self.raw_to_tokens
         if labels:
             self.labels_v3 = labels_v3
-            self.labeller = Labeller(self.y_emb.max_bow_genre_size, self.n_tokens, self.sample_length, v3=self.labels_v3)
+            self.labeller = Labeller(self.y_emb.max_bow_genre_size, self.n_tokens, self.sample_length, v3=self.labels_v3).to(device)
         else:
-            self.labeller = EmptyLabeller()
+            self.labeller = EmptyLabeller().to(device)
         if fp16: self.apply(_convert_conv_weights_to_fp16)
-        self = self.to(device)
 
         print(f"Level:{level}, Cond downsample:{self.cond_downsample}, Raw to tokens:{self.raw_to_tokens}, Sample length:{self.sample_length}")
 
