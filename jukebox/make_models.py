@@ -178,7 +178,7 @@ def make_prior(hps, vqvae, device='cuda'):
     prior.alignment_head = hps.get('alignment_head', None)
     prior.alignment_layer = hps.get('alignment_layer', None)
     
-    #prior = prior.to(device)
+    prior = prior.to(device)
     prior.device = device
     restore_model(hps, prior, hps.restore_prior)
     if hps.train:
