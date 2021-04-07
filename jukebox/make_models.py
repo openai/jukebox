@@ -41,7 +41,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = t.load(restore, pickle_module=wrapper, map_location=t.device('cpu'))
+    checkpoint = t.load(restore, pickle_module=joblib, map_location=t.device('cpu'))
     print("Restored from {}".format(restore))
     return checkpoint
 
