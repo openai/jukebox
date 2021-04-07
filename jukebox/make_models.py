@@ -35,7 +35,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = mmapdict(restore) # t.load(restore, map_location=t.device('cpu'))
+    checkpoint = mmapdict(restore, True) # t.load(restore, map_location=t.device('cpu'))
     print("Restored from {}".format(restore))
     return checkpoint
 
