@@ -29,7 +29,7 @@ class SimplePrior(nn.Module):
     def __init__(self, z_shapes, l_bins, encoder, decoder, level,
                  downs_t, strides_t, labels, prior_kwargs, x_cond_kwargs, y_cond_kwargs,
                  prime_kwargs, copy_input, labels_v3=False,
-                 merged_decoder=False, single_enc_dec=False, fp16=True):
+                 merged_decoder=False, single_enc_dec=False, fp16=True, device='cuda'):
         super().__init__()
 
         self.use_tokens = prime_kwargs.pop('use_tokens')
@@ -73,12 +73,14 @@ class SimplePrior(nn.Module):
             if dist.get_rank() == 0: print(f"Conditioning on 1 above level(s)")
             self.conditioner_blocks.append(conditioner_block(self.cond_level))
             if fp16: self.apply(_convert_conv_weights_to_fp16)
+            self = self.to(device)
             
         # Y conditioning
         if self.y_cond:
             self.n_time = self.z_shape[0] # Assuming STFT=TF order and raw=T1 order, so T is first dim
             self.y_emb = LabelConditioner(n_time=self.n_time,include_time_signal=not self.x_cond,**y_cond_kwargs)
             if fp16: self.apply(_convert_conv_weights_to_fp16)
+            self = self.to(device)
 
         # Lyric conditioning
         if single_enc_dec:
@@ -126,6 +128,7 @@ class SimplePrior(nn.Module):
                                                      **prior_kwargs)
         
         if fp16: self.apply(_convert_conv_weights_to_fp16)
+        self = self.to(device)
         self.n_ctx = self.gen_loss_dims
         self.downsamples = calculate_strides(strides_t, downs_t)
         self.cond_downsample = self.downsamples[level+1] if level != self.levels - 1 else None
@@ -137,6 +140,7 @@ class SimplePrior(nn.Module):
         else:
             self.labeller = EmptyLabeller()
         if fp16: self.apply(_convert_conv_weights_to_fp16)
+        self = self.to(device)
 
         print(f"Level:{level}, Cond downsample:{self.cond_downsample}, Raw to tokens:{self.raw_to_tokens}, Sample length:{self.sample_length}")
 
