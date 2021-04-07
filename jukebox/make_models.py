@@ -22,7 +22,7 @@ MODELS = {
 }
 
 def func(storage,location):
-    print(storage)
+    t.cuda.empty_cache()
 
 def load_checkpoint(path):
     restore = path
