@@ -8,6 +8,8 @@ from jukebox.transformer.ops import Conv1D, ACT_FNS, LayerNorm
 from jukebox.transformer.factored_attention import FactoredAttention
 from jukebox.utils.checkpoint import checkpoint
 
+from jukebox.transformer.ops import _convert_conv_weights_to_fp16
+
 def _convert_mlp_traced(l):
     if isinstance(l, ResAttnBlock):
         l.mlp = t.jit.trace(l.mlp, t.randn(1, 1, l.n_in).cuda())
@@ -141,6 +143,7 @@ class Transformer(nn.Module):
         for d in range(n_depth):
             print(d)
             self._attn_mods.append(attn_block(d).to(device))
+            self.apply(_convert_conv_weights_to_fp16)
         self.ws = []
 
 
