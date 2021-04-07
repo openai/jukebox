@@ -12,6 +12,8 @@ from jukebox.utils.remote_utils import download
 from jukebox.utils.torch_utils import freeze_model
 from jukebox.utils.dist_utils import print_all
 from jukebox.vqvae.vqvae import calculate_strides
+
+from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 import fire
 
 MODELS = {
@@ -23,6 +25,7 @@ MODELS = {
 
 def func(storage,location):
     t.cuda.empty_cache()
+    storage.apply(_convert_conv_weights_to_fp16)
 
 def load_checkpoint(path):
     restore = path
