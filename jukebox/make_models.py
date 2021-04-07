@@ -167,12 +167,13 @@ def make_prior(hps, vqvae, device='cuda'):
                         labels_v3=hps.labels_v3,
                         merged_decoder=hps.merged_decoder,
                         single_enc_dec=hps.single_enc_dec,
-                        fp16=hps.fp16_params)
+                        fp16=hps.fp16_params,
+                        device=device)
 
     prior.alignment_head = hps.get('alignment_head', None)
     prior.alignment_layer = hps.get('alignment_layer', None)
     
-    prior = prior.to(device)
+    #prior = prior.to(device)
     prior.device = device
     restore_model(hps, prior, hps.restore_prior)
     if hps.train:
