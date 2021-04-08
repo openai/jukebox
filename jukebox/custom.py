@@ -18,6 +18,8 @@ import copyreg
 import pickle
 import pathlib
 
+from torch.serialization import *
+
 def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     deserialized_objects: Dict[int, Any] = {}
 
