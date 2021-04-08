@@ -30,8 +30,7 @@ def disk_device(storage, location):
     s = 'strg' + str(storage_id) + '.bin'
     storage_id += 1
     with open(s, 'wb') as f:
-        for value in storage:
-            f.write(struct.pack('f', value))
+        f.write(struct.pack('f' * storage.size(), *storage))
     return t.Storage.from_file(s, size=storage.size())
 
 def load_checkpoint(path):
