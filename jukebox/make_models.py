@@ -24,6 +24,7 @@ MODELS = {
 }
 
 import struct
+from tqdm import tqdm
 storage_id = 0
 def disk_device(storage, location):
     global storage_id
@@ -41,9 +42,10 @@ def disk_device(storage, location):
     }
     try:
         ty = storage.dtype
-        with open(s, 'wb') as f:
-            f.write(struct.pack(fmap[ty] * storage.size(), *storage))
         s2 = storage.size()
+        with open(s, 'wb') as f:
+            for i in tqdm(range(0,s2,1024)):
+                f.write(struct.pack(fmap[ty] * min(1024,s2-i), *(storage[i:i+1024])))
         del storage
         return cmap[ty].from_file(s, size=s2)
     except Exception:
