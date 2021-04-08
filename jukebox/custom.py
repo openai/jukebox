@@ -199,7 +199,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         with open(s, 'wb') as f2:
             for i in range(0, storage.size(), 8192):
                 f2.write(struct.pack(fmap[storage.dtype] * min(storage.size() - i, 8192), *(storage[i:i+8192])))
-        obj = storage.__class__.from_file_(s, size=storage.size())
+        obj = storage.__class__.from_file(s, size=storage.size())
         del storage
         deserialized_objects[key] = obj
     torch._utils._validate_loaded_sparse_tensors()
