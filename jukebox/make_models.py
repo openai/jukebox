@@ -23,33 +23,6 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
-import struct
-from tqdm import tqdm
-storage_id = 0
-def disk_device(storage, location):
-    global storage_id
-    #storage = storage.half()
-    print(storage.dtype)
-    s = 'strg' + str(storage_id) + '.bin'
-    storage_id += 1
-    cmap = {
-        t.float16: t.HalfStorage,
-        t.float32: t.FloatStorage
-    }
-    fmap = {
-        t.float16: 'e',
-        t.float32: 'f'
-    }
-    try:
-        ty = storage.dtype
-        s2 = storage.size()
-        with open(s, 'wb') as f:
-            for i in tqdm(range(0,s2,1024)):
-                f.write(struct.pack(fmap[ty] * min(1024,s2-i), *(storage[i:i+1024])))
-        del storage
-        return cmap[ty].from_file(s, size=s2)
-    except Exception:
-        return storage
 def load_checkpoint(path):
     restore = path
     if restore.startswith(REMOTE_PREFIX):
@@ -66,7 +39,7 @@ def load_checkpoint(path):
     import mmap
     with open(restore, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as m:
-            checkpoint = t.load(m, map_location=disk_device)
+            checkpoint = t.load(m, map_location=t.device('cpu'))
     print("Restored from {}".format(restore))
     return checkpoint
 
