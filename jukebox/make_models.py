@@ -34,9 +34,9 @@ def disk_device(storage, location):
     try:
         with open(s, 'wb') as f:
             f.write(struct.pack('f' * storage.size(), *storage))
-        s = storage.size()
+        s2 = storage.size()
         del storage
-        return t.Storage.from_file(s, size=s)
+        return t.Storage.from_file(s, size=s2)
     except Exception:
         return storage
 def load_checkpoint(path):
