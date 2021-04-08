@@ -18,6 +18,7 @@ import copyreg
 import pickle
 import pathlib
 
+from tqdm import tqdm
 from torch.serialization import _check_dill_version, _open_file_like, _is_zipfile, _get_restore_location, _check_seekable, _should_read_directly, _maybe_decode_ascii, MAGIC_NUMBER, PROTOCOL_VERSION
 
 def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
@@ -197,7 +198,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         storage = deserialized_objects[key]
         s = str(key) + '.bin'
         with open(s, 'wb') as f2:
-            for i in range(0, storage.size(), 8192):
+            for i in tqdm(range(0, storage.size(), 8192)):
                 f2.write(struct.pack(fmap[storage.dtype] * min(storage.size() - i, 8192), *(storage[i:i+8192])))
         obj = storage.__class__.from_file(s, size=storage.size())
         del storage
