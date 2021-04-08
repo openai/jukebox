@@ -18,6 +18,7 @@ import copyreg
 import pickle
 import pathlib
 
+import gc
 from tqdm import tqdm
 from torch.serialization import _check_dill_version, _open_file_like, _is_zipfile, _get_restore_location, _check_seekable, _should_read_directly, _maybe_decode_ascii, MAGIC_NUMBER, PROTOCOL_VERSION
 
@@ -204,6 +205,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         del storage
         del deserialized_objects[key]
         deserialized_objects[key] = obj
+        gc.collect()
     torch._utils._validate_loaded_sparse_tensors()
 
     return result
