@@ -24,7 +24,7 @@ MODELS = {
 }
 
 def disk_device(storage, location):
-    storage.share_memory()
+    storage.share_memory_()
     return storage
 
 def load_checkpoint(path):
