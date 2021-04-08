@@ -27,6 +27,7 @@ import struct
 storage_id = 0
 def disk_device(storage, location):
     global storage_id
+    storage = storage.half()
     s = 'strg' + str(storage_id) + '.bin'
     storage_id += 1
     with open(s, 'wb') as f:
