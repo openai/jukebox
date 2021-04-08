@@ -23,9 +23,16 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
+import struct
+storage_id = 0
 def disk_device(storage, location):
-    storage.share_memory_()
-    return storage
+    global storage_id
+    s = 'strg' + str(storage_id) + '.bin'
+    storage_id += 1
+    with open(s, 'wb') as f:
+        for value in storage:
+            f.write(struct.pack('f', value))
+    return t.Storage.from_file(s, size=storage.size())
 
 def load_checkpoint(path):
     restore = path
