@@ -16,7 +16,7 @@ from jukebox.vqvae.vqvae import calculate_strides
 from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 import fire
 
-from jukebox.custom import custom_load
+#from jukebox.custom import custom_load
 
 MODELS = {
     '5b': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b"),
@@ -41,7 +41,7 @@ def load_checkpoint(path):
     import mmap
     with open(restore, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as m:
-            checkpoint = custom_load(m, map_location=t.device('cpu'))
+            checkpoint = t.load(m, map_location=t.device('cpu'))
     print("Restored from {}".format(restore))
     return checkpoint
 
