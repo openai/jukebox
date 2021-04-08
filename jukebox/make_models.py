@@ -30,9 +30,9 @@ def disk_device(storage, location):
     s = 'strg' + str(storage_id) + '.bin'
     storage_id += 1
     with open(s, 'wb') as f:
-        f.write(struct.pack('f' * storage.size(), *storage))
-    return t.Storage.from_file(s, size=storage.size())
-
+        for v in storage:
+            f.write(struct.pack('e', v))
+    return t.HalfStorage.from_file(s, size=storage.size())
 def load_checkpoint(path):
     restore = path
     if restore.startswith(REMOTE_PREFIX):
