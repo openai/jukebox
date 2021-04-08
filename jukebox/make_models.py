@@ -28,12 +28,13 @@ storage_id = 0
 def disk_device(storage, location):
     global storage_id
     #storage = storage.half()
+    print(storage.dtype)
     s = 'strg' + str(storage_id) + '.bin'
     storage_id += 1
     try:
         with open(s, 'wb') as f:
-            for v in storage:
-                f.write(struct.pack('e', v))
+            f.write(struct.pack('f' * storage.size(), *storage))
+        del storage
         return t.Storage.from_file(s, size=storage.size())
     except Exception:
         return storage
