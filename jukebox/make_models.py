@@ -23,9 +23,6 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
-def func(storage,location):
-    del storage
-
 def load_checkpoint(path):
     restore = path
     if restore.startswith(REMOTE_PREFIX):
@@ -39,7 +36,10 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = t.load(restore, map_location=func)
+    import mmap
+    with open(restore, 'rb') as f:
+        with mmap.mmap(f.fileno(), 0) as m:
+            checkpoint = t.load(memoryview(m), map_location=t.device('cpu'))
     print("Restored from {}".format(restore))
     return checkpoint
 
@@ -180,6 +180,8 @@ def make_prior(hps, vqvae, device='cuda'):
     
     prior = prior.to(device)
     prior.device = device
+    if hps.fp16_params:
+        prior.apply(_convert_conv_weights_to_fp16)
     restore_model(hps, prior, hps.restore_prior)
     if hps.train:
         print_all(f"Loading prior in train mode")
