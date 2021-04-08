@@ -18,7 +18,7 @@ import copyreg
 import pickle
 import pathlib
 
-from torch.serialization import _check_dill_version, _open_file_like, _is_zipfile
+from torch.serialization import _check_dill_version, _open_file_like, _is_zipfile, _get_restore_location, _check_seekable, _should_read_directly, _maybe_decode_ascii, MAGIC_NUMBER, PROTOCOL_VERSION
 
 def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     deserialized_objects: Dict[int, Any] = {}
@@ -186,8 +186,8 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     offset = f.tell() if f_should_read_directly else None
     import struct
     fmap = {
-        t.float16: 'e',
-        t.float32: 'f'
+        torch.float16: 'e',
+        torch.float32: 'f'
     }
     for key in deserialized_storage_keys:
         assert key in deserialized_objects
