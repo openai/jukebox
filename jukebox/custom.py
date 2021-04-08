@@ -9,8 +9,8 @@ import tarfile
 import tempfile
 import warnings
 from contextlib import closing, contextmanager
-from ._utils import _import_dotted_name
-from ._six import string_classes as _string_classes
+from torch._utils import _import_dotted_name
+from torch._six import string_classes as _string_classes
 from torch._utils_internal import get_source_lines_and_file
 from torch.types import Storage
 from typing import Any, BinaryIO, cast, Dict, Optional, Type, Tuple, Union, IO
