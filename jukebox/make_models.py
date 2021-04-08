@@ -31,12 +31,21 @@ def disk_device(storage, location):
     print(storage.dtype)
     s = 'strg' + str(storage_id) + '.bin'
     storage_id += 1
+    cmap = {
+        t.float16: t.HalfStorage,
+        t.float32: t.FloatStorage
+    }
+    fmap = {
+        t.float16: 'e',
+        t.float32: 'f'
+    }
     try:
+        ty = storage.dtype
         with open(s, 'wb') as f:
-            f.write(struct.pack('f' * storage.size(), *storage))
+            f.write(struct.pack(fmap[ty] * storage.size(), *storage))
         s2 = storage.size()
         del storage
-        return t.Storage.from_file(s, size=s2)
+        return cmap[ty].from_file(s, size=s2)
     except Exception:
         return storage
 def load_checkpoint(path):
