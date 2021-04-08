@@ -190,7 +190,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         torch.float16: 'e',
         torch.float32: 'f'
     }
-    for key in deserialized_storage_keys:
+    for key in tqdm(deserialized_storage_keys):
         assert key in deserialized_objects
         deserialized_objects[key]._set_from_file(f, offset, f_should_read_directly)
         if offset is not None:
@@ -198,7 +198,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         storage = deserialized_objects[key]
         s = str(key) + '.bin'
         with open(s, 'wb') as f2:
-            for i in tqdm(range(0, storage.size(), 8192)):
+            for i in range(0, storage.size(), 8192):
                 f2.write(struct.pack(fmap[storage.dtype] * min(storage.size() - i, 8192), *(storage[i:i+8192])))
         obj = storage.__class__.from_file(s, size=storage.size())
         del storage
