@@ -25,6 +25,33 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
+def disk_map(storage, location):
+    def set_file(self, f, offset, f_should_read_directly):
+        self._f = f
+        self._offset = offset
+        self._f_should_read_directly = f_should_read_directly
+        
+    def get_item(self, idx):
+        self.orig_set(self._f, self._offset, self._f_should_read_directly)
+        
+        value = self.orig_get_item(idx)
+        
+        nstorage = self.__class__._new_with_file(self._f)
+        nstorage.orig_get_item = self.orig_get_item
+        nstorage.__getitem__ = self.__getitem__
+        nstorage.orig_set = self.orig_set
+        nstorage._set_from_file = self._set_from_file
+        #del self
+        self = nstorage
+        
+        return value
+    
+    storage.orig_get_item = storage.__getitem__
+    storage.__getitem__ = get_item
+    storage.orig_set = storage._set_from_file
+    storage._set_from_file = set_file
+    return storage
+
 def load_checkpoint(path):
     restore = path
     if restore.startswith(REMOTE_PREFIX):
@@ -41,7 +68,7 @@ def load_checkpoint(path):
     import mmap
     with open(restore, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as m:
-            checkpoint = t.load(m, map_location=t.device('cpu'))
+            checkpoint = t.load(m, map_location=disk_map)
     print("Restored from {}".format(restore))
     return checkpoint
 
