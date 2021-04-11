@@ -29,6 +29,7 @@ def disk_map(storage, location):
     def set_file(f, offset, f_should_read_directly):
         storage._name = f.name
         storage._mode = f.mode
+        storage._seek = f.tell()
         storage._offset = offset
         storage._f_should_read_directly = f_should_read_directly
         storage._set = False
@@ -36,6 +37,7 @@ def disk_map(storage, location):
     def get_item(idx):
         with open(storage._name, storage._mode) as f:
             new_storage = storage.__class__._new_with_file(f)
+            f.seek(storage._seek)
             new_storage._set_from_file(f, storage._offset, storage._f_should_read_directly)
             value = new_storage.orig_get_item(idx)
             del new_storage
