@@ -191,7 +191,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         assert key in deserialized_object
         obj = deserialized_objects[key]
         s = str(key) + '.bint'
-        if not os.path.isfile(s)
+        if not os.path.isfile(s):
             obj._set_from_file(f, offset, f_should_read_directly)
             with open(s, 'wb') as ff:
                 obj._write_file(ff, True, False)
