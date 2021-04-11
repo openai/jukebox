@@ -196,6 +196,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
             with open(s, 'wb') as ff:
                 obj._write_file(ff, True, False)
         deserialized_objects[key] = obj.from_file(s, size=obj.size())
+        del obj
         if offset is not None:
             offset = f.tell()
     torch._utils._validate_loaded_sparse_tensors()
