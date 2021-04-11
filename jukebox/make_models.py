@@ -53,6 +53,7 @@ def disk_map(storage, location):
     o._set_from_file = set_file
     o.dtype = storage.dtype
     o.size = storage.size
+    o.device = storage.device
     return o
 
 def load_checkpoint(path):
