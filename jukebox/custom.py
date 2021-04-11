@@ -195,8 +195,9 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
             with open(s, 'wb') as ff:
                 obj._write_file(ff, True, False)
         tmp = obj.from_file(s, size=obj.size())
-        deserialized_objects[key]._set_cdata(tmp._cdata)
-        del tmp
+        tmp._set_cdata(obj._cdata)
+        deserialized_objects[key] = tmp
+        del obj
         if offset is not None:
             offset = f.tell()
     print(result)
