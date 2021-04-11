@@ -37,7 +37,7 @@ def disk_map(storage, location):
 
             value = self.orig_get_item(idx)
 
-            new_storage = storage.__class__._new_with_weak_ptr(storage._weak_ref)
+            new_storage = storage.__class__._new_with_file(f)
             new_storage._fileno = f.fileno
             
         new_storage._offset = storage.offset
