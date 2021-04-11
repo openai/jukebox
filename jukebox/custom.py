@@ -137,6 +137,11 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
             if root_key not in deserialized_objects:
                 obj = data_type(size)
                 obj._torch_load_uninitialized = True
+                s = str(key) + '.bint'
+                if not os.path.isfile(s):
+                    with open(s, 'wb') as ff:
+                        obj._write_file(ff, True, False)
+                obj = obj.__class__.from_file(s, shared=0, size=size)
                 deserialized_objects[root_key] = restore_location(obj, location)
             storage = deserialized_objects[root_key]
             if view_metadata is not None:
@@ -188,16 +193,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     
     for key in tqdm(deserialized_storage_keys):
         assert key in deserialized_objects
-        obj = deserialized_objects[key]
-        print(type(obj))
-        s = str(key) + '.bint'
-        if not os.path.isfile(s):
-            obj._set_from_file(f, offset, f_should_read_directly)
-            with open(s, 'wb') as ff:
-                obj._write_file(ff, True, False)
-        tmp = obj.__class__.from_file(s, size=obj.size())
-        deserialized_objects[key] = tmp
-        del obj
+        deserialized_objects[key]._set_from_file(f, offset, f_should_read_directly)
         if offset is not None:
             offset = f.tell()
     print(result)
