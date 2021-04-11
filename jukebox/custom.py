@@ -182,7 +182,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     unpickler = pickle_module.Unpickler(f, **pickle_load_args)
     unpickler.persistent_load = persistent_load
     result = unpickler.load()
-
+    print(result)
     deserialized_storage_keys = pickle_module.load(f, **pickle_load_args)
 
     offset = f.tell() if f_should_read_directly else None
