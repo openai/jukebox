@@ -66,10 +66,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    import mmap
-    with open(restore, 'rb') as f:
-        with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as m:
-            checkpoint = t.load(m, map_location=disk_map)
+    checkpoint = t.load(restore, map_location=disk_map)
     print("Restored from {}".format(restore))
     return checkpoint
 
