@@ -27,6 +27,7 @@ MODELS = {
 
 def disk_map(storage, location):
     def set_file(f, offset, f_should_read_directly):
+        print(f, offset, f_should_read_directly)
         storage._name = f.name
         storage._mode = f.mode
         storage._seek = f.tell()
@@ -40,6 +41,7 @@ def disk_map(storage, location):
             f.seek(storage._seek)
             new_storage._set_from_file(f, storage._offset, storage._f_should_read_directly)
             value = new_storage.orig_get_item(idx)
+            print(idx, value)
             del new_storage
         return value
     
