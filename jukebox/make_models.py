@@ -16,7 +16,7 @@ from jukebox.vqvae.vqvae import calculate_strides
 from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 import fire
 
-#from jukebox.custom import custom_load
+from jukebox.custom import custom_load
 
 MODELS = {
     '5b': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b"),
@@ -63,7 +63,7 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = t.load(restore, map_location=t.device('cpu'))
+    checkpoint = custom_load(restore, map_location=t.device('cpu'))
     #t._storage_classes = classes
     print("Restored from {}".format(restore))
     return checkpoint
