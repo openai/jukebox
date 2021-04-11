@@ -25,27 +25,28 @@ MODELS = {
     #'your_model': ("you_vqvae_here", "your_upsampler_here", ..., "you_top_level_prior_here")
 }
 
+class Object(storage.__class__):            
+    def _set_from_file(self, f, offset, f_should_read_directly):
+        #print(f, offset, f_should_read_directly)
+        self._name = f.name
+        self._mode = f.mode
+        self._seek = f.tell()
+        self._offset = offset
+        self._f_should_read_directly = f_should_read_directly
+
+    def __getitem__(self, idx):
+        print('we get?')
+        with open(self._name, self._mode) as f:
+            new_storage = self.__class__._new_with_file(f)
+            f.seek(self._seek)
+            new_storage._set_from_file(f, self._offset, self._f_should_read_directly)
+            value = new_storage.__getitem__(idx)
+            print(idx, value)
+            del new_storage
+        return value
+
+t._storage_classes.add(Object)
 def disk_map(storage, location):
-    class Object(storage.__class__):            
-        def _set_from_file(self, f, offset, f_should_read_directly):
-            #print(f, offset, f_should_read_directly)
-            self._name = f.name
-            self._mode = f.mode
-            self._seek = f.tell()
-            self._offset = offset
-            self._f_should_read_directly = f_should_read_directly
-            
-        def __getitem__(self, idx):
-            print('we get?')
-            with open(self._name, self._mode) as f:
-                new_storage = self.__class__._new_with_file(f)
-                f.seek(self._seek)
-                new_storage._set_from_file(f, self._offset, self._f_should_read_directly)
-                value = new_storage.__getitem__(idx)
-                print(idx, value)
-                del new_storage
-            return value
-    
     o = Object()
     return o
 
