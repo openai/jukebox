@@ -51,6 +51,8 @@ def disk_map(storage, location):
     o = Object()
     o.__getitem__ = get_item
     o._set_from_file = set_file
+    o.dtype = storage.dtype
+    o.size = storage.size
     return o
 
 def load_checkpoint(path):
