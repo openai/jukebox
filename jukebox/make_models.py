@@ -30,24 +30,26 @@ def disk_map(storage, location):
         storage._fileno = f.fileno
         storage._offset = offset
         storage._f_should_read_directly = f_should_read_directly
+        storage._set = False
         
     def get_item(idx):
-        with open(storage._fileno, 'rb') as f:
-            storage.orig_set(f, storage._offset, storage._f_should_read_directly)
+        if not storage._set:
+            storage._set = True
+            with open(storage._fileno, 'rb') as f:
+                storage.orig_set(f, storage._offset, storage._f_should_read_directly)
+        value = self.orig_get_item(idx)
 
-            value = self.orig_get_item(idx)
-
-            new_storage = storage.__class__._new_with_file(f)
-            new_storage._fileno = f.fileno
+            #new_storage = storage.__class__._new_with_file(f)
+            #new_storage._fileno = f.fileno
             
-        new_storage._offset = storage.offset
-        new_storage._f_should_read_directly = storage.f_should_read_directly
-        new_storage.orig_get_item = storage.orig_get_item
-        new_storage.__getitem__ = storage.__getitem__
-        new_storage.orig_set = storage.orig_set
-        new_storage._set_from_file = storage._set_from_file
+        #new_storage._offset = storage.offset
+        #new_storage._f_should_read_directly = storage.f_should_read_directly
+        #new_storage.orig_get_item = storage.orig_get_item
+        #new_storage.__getitem__ = storage.__getitem__
+        #new_storage.orig_set = storage.orig_set
+        #new_storage._set_from_file = storage._set_from_file
         
-        storage = new_storage
+        #storage = new_storage
         
         return value
     
