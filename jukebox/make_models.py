@@ -40,13 +40,11 @@ def disk_map(storage, location):
             new_storage = storage.__class__._new_with_file(f)
             f.seek(storage._seek)
             new_storage._set_from_file(f, storage._offset, storage._f_should_read_directly)
-            value = new_storage.orig_get_item(idx)
+            value = new_storage.__getitem__(idx)
             print(idx, value)
             del new_storage
         return value
     
-    storage.orig_get_item = storage.__getitem__
-    storage.orig_set = storage._set_from_file
     storage.__getitem__ = get_item
     storage._set_from_file = set_file
     return storage
