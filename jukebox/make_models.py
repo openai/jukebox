@@ -26,7 +26,7 @@ MODELS = {
 }
 
 def disk_map(storage, location):
-    class Object(t.Storage):
+    class Object(storage.__class__):            
         def _set_from_file(self, f, offset, f_should_read_directly):
             #print(f, offset, f_should_read_directly)
             self._name = f.name
@@ -38,7 +38,7 @@ def disk_map(storage, location):
         def __getitem__(self, idx):
             print('we get?')
             with open(self._name, self._mode) as f:
-                new_storage = self.base_class._new_with_file(f)
+                new_storage = self.__class__._new_with_file(f)
                 f.seek(self._seek)
                 new_storage._set_from_file(f, self._offset, self._f_should_read_directly)
                 value = new_storage.__getitem__(idx)
@@ -47,9 +47,6 @@ def disk_map(storage, location):
             return value
     
     o = Object()
-    o.dtype = storage.dtype
-    o.device = storage.device
-    o.base_class = storage.__class__
     return o
 
 def load_checkpoint(path):
