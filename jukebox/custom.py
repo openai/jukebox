@@ -196,9 +196,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
         deserialized_objects[key]._set_from_file(f, offset, f_should_read_directly)
         if offset is not None:
             offset = f.tell()
-    print(result)
     torch._utils._validate_loaded_sparse_tensors()
-
     return result
 
 def custom_load(f, map_location=None, pickle_module=pickle, **pickle_load_args):
