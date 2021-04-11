@@ -63,8 +63,8 @@ def load_checkpoint(path):
                 download(remote_path, local_path)
         restore = local_path
     dist.barrier()
-    checkpoint = t.load(restore, map_location=disk_map)
-    t._storage_classes = classes
+    checkpoint = t.load(restore, map_location=t.device('cpu'))
+    #t._storage_classes = classes
     print("Restored from {}".format(restore))
     return checkpoint
 
