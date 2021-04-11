@@ -37,7 +37,7 @@ def disk_map(storage, location):
             storage._set = True
             with open(storage._fileno, 'rb') as f:
                 storage.orig_set(f, storage._offset, storage._f_should_read_directly)
-        value = self.orig_get_item(idx)
+        value = storage.orig_get_item(idx)
 
             #new_storage = storage.__class__._new_with_file(f)
             #new_storage._fileno = f.fileno
