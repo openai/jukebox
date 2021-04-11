@@ -26,23 +26,23 @@ MODELS = {
 }
 
 def disk_map(storage, location):
-    def set_file(self, f, offset, f_should_read_directly):
-        self._f = f
-        self._offset = offset
-        self._f_should_read_directly = f_should_read_directly
+    def set_file(f, offset, f_should_read_directly):
+        storage._f = f
+        storage._offset = offset
+        storage._f_should_read_directly = f_should_read_directly
         
-    def get_item(self, idx):
-        self.orig_set(self._f, self._offset, self._f_should_read_directly)
+    def get_item(idx):
+        storage.orig_set(storage._f, storage._offset, storage._f_should_read_directly)
         
         value = self.orig_get_item(idx)
         
-        nstorage = self.__class__._new_with_file(self._f)
-        nstorage.orig_get_item = self.orig_get_item
-        nstorage.__getitem__ = self.__getitem__
-        nstorage.orig_set = self.orig_set
-        nstorage._set_from_file = self._set_from_file
+        new_storage = storage.__class__._new_with_file(storage._f)
+        new_storage.orig_get_item = storage.orig_get_item
+        new_storage.__getitem__ = storage.__getitem__
+        new_storage.orig_set = storage.orig_set
+        new_storage._set_from_file = storage._set_from_file
         #del self
-        self = nstorage
+        storage = new_storage
         
         return value
     
