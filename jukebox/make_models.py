@@ -28,27 +28,30 @@ MODELS = {
 def disk_map(storage, location):
     def set_file(f, offset, f_should_read_directly):
         #print(f, offset, f_should_read_directly)
-        storage._name = f.name
-        storage._mode = f.mode
-        storage._seek = f.tell()
-        storage._offset = offset
-        storage._f_should_read_directly = f_should_read_directly
-        storage._set = False
+        o._name = f.name
+        o._mode = f.mode
+        o._seek = f.tell()
+        o._offset = offset
+        o._f_should_read_directly = f_should_read_directly
         
     def get_item(idx):
         print('we get?')
-        with open(storage._name, storage._mode) as f:
-            f.seek(storage._seek)
+        with open(o._name, o._mode) as f:
+            f.seek(o._seek)
             new_storage = storage.__class__._new_with_file(f)
-            new_storage._set_from_file(f, storage._offset, storage._f_should_read_directly)
+            new_storage._set_from_file(f, o._offset, o._f_should_read_directly)
             value = new_storage.__getitem__(idx)
             print(idx, value)
             del new_storage
         return value
     
-    storage.__getitem__ = get_item
-    storage._set_from_file = set_file
-    return storage
+    class Object(object):
+        pass
+    
+    o = Object()
+    o.__getitem__ = get_item
+    o._set_from_file = set_file
+    return o
 
 def load_checkpoint(path):
     restore = path
