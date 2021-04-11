@@ -46,9 +46,9 @@ def disk_map(storage, location):
         return value
     
     class Object(object):
-        @classmethod
-        def __instancecheck__(cls, instance):
-            return isinstance(instance, t.Storage)
+        @property
+        def __class__(self):
+            return t.Storage
     
     o = Object()
     o.__getitem__ = get_item
