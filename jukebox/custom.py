@@ -181,6 +181,7 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
     _sys_info = pickle_module.load(f, **pickle_load_args)
     unpickler = pickle_module.Unpickler(f, **pickle_load_args)
     unpickler.persistent_load = persistent_load
+    result = unpickler.load()
     deserialized_storage_keys = pickle_module.load(f, **pickle_load_args)
 
     offset = f.tell() if f_should_read_directly else None
@@ -193,11 +194,11 @@ def _legacy_load(f, map_location, pickle_module, **pickle_load_args):
             obj._set_from_file(f, offset, f_should_read_directly)
             with open(s, 'wb') as ff:
                 obj._write_file(ff, True, False)
-        deserialized_objects[key] = obj.from_file(s, size=obj.size())
-        del obj
+        tmp = obj.from_file(s, size=obj.size())
+        deserialized_objects[key]._set_cdata(tmp._cdata)
+        del tmp
         if offset is not None:
             offset = f.tell()
-    result = unpickler.load()
     print(result)
     torch._utils._validate_loaded_sparse_tensors()
 
