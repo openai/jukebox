@@ -130,9 +130,9 @@ class VQVAE(nn.Module):
         for level in range(self.levels):
             encoder = self.encoders[level]
             x_out = encoder(x_in)
-            xs.append(x_out[-1])
+            xs.append(x_out[-1].cpu())
         zs = self.bottleneck.encode(xs)
-        return zs[start_level:end_level].cpu()
+        return zs[start_level:end_level]
 
     def encode(self, x, start_level=0, end_level=None, bs_chunks=1):
         x_chunks = t.chunk(x, bs_chunks, dim=0)
