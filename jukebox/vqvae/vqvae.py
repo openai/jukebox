@@ -113,7 +113,7 @@ class VQVAE(nn.Module):
         return x_out.cpu()
 
     def decode(self, zs, start_level=0, end_level=None, bs_chunks=1):
-        bs_chunks = bs_chunks * ((zs[start_level].shape[1] * [8,32*4,128*8][start_level]) // (60 * 5 * 44100)) # 5 minute segments for level 0, 1.25 minute chunks for level 1, and 18 second chunks for level 2
+        bs_chunks = bs_chunks * ((zs[0].shape[1] * [8,32*4,128*8][start_level]) // (60 * 5 * 44100)) # 5 minute segments for level 0, 1.25 minute chunks for level 1, and 18 second chunks for level 2
         z_chunks = [t.chunk(z, bs_chunks, dim=0) for z in zs]
         x_outs = []
         for i in range(bs_chunks):
