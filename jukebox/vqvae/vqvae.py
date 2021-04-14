@@ -117,6 +117,7 @@ class VQVAE(nn.Module):
             # Use only lowest level
             decoder, x_quantised = self.decoders[start_level], xs_quantised[0:1]
             x_out = decoder(x_quantised, all_levels=False)
+            del xs_quantised
             del x_quantised
             xx_out = self.postprocess(x_out).cpu()
             del x_out
