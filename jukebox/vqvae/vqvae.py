@@ -108,7 +108,7 @@ class VQVAE(nn.Module):
         outs = t.zeros((0, zz[0].shape[1]), dtype=t.float16)
         
         for i in range(bs_chunks):
-            zs = [z_c[k][i] for k in range(self.levels)]
+            zs = [z_c[k][i] for k in range(len(z_c))]
             t.cuda.empty_cache()
             assert len(zs) == end_level - start_level
             xs_quantised = self.bottleneck.decode([z.cuda() for z in zs], start_level=start_level, end_level=end_level)
