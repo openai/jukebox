@@ -107,7 +107,7 @@ class VQVAE(nn.Module):
         z_c = [t.chunk(z, bs_chunks, dim=1) for z in zz]
         outs = t.zeros((0, zz[0].shape[1]), dtype=t.float16)
         
-        for i in range(bs_chunks)
+        for i in range(bs_chunks):
             zs = [z_c[k][i] for k in range(self.levels)]
             t.cuda.empty_cache()
             assert len(zs) == end_level - start_level
