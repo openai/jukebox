@@ -108,17 +108,20 @@ class VQVAE(nn.Module):
         outs = t.zeros((zz[0].shape[0], 0, 1), dtype=t.float16)
         
         for i in range(bs_chunks):
-            zs = [z_c[k][i] for k in range(len(z_c))]
             t.cuda.empty_cache()
+            zs = [z_c[k][i].cuda() for k in range(len(z_c))]
             assert len(zs) == end_level - start_level
-            xs_quantised = self.bottleneck.decode([z.cuda() for z in zs], start_level=start_level, end_level=end_level)
+            xs_quantised = self.bottleneck.decode(zs, start_level=start_level, end_level=end_level)
             assert len(xs_quantised) == end_level - start_level
-
+            del zs
             # Use only lowest level
             decoder, x_quantised = self.decoders[start_level], xs_quantised[0:1]
             x_out = decoder(x_quantised, all_levels=False)
-            x_out = self.postprocess(x_out).cpu()
-            outs = t.cat((outs, x_out), dim=1)
+            del x_quantised
+            xx_out = self.postprocess(x_out).cpu()
+            del x_out
+            outs = t.cat((outs, xx_out), dim=1)
+            del xx_out
         return outs
 
     def decode(self, zs, start_level=0, end_level=None, bs_chunks=1):
@@ -153,6 +156,7 @@ class VQVAE(nn.Module):
             zs = [ z.cpu() for z in zs ]
             for i in range(self.levels):
                 outs[i] = t.cat((outs[i], zs[i]), dim=1)
+            del zs
         
         return outs[start_level:end_level]
 
