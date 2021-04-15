@@ -103,7 +103,7 @@ class VQVAE(nn.Module):
         if end_level is None:
             end_level = self.levels
         
-        bs_chunks = ((zz[0].shape[1] * [8,32*4,128*8][start_level] - 1) // (60 * 5 * 44100)) + 1# 5 minute segments for level 0, 1.25 minute chunks for level 1, and 18 second chunks for level 2
+        bs_chunks = ((zz[0].shape[1] * [8,32*2,128*4][start_level] - 1) // (60 * 1 * 44100)) + 1# 1 minute segments for level 0, 30 seconds chunks for level 1, and 15 second chunks for level 2
         z_c = [t.chunk(z, bs_chunks, dim=1) for z in zz]
         outs = t.zeros((zz[0].shape[0], 0, 1), dtype=t.float16)
         
@@ -115,6 +115,7 @@ class VQVAE(nn.Module):
             assert len(xs_quantised) == end_level - start_level
             del zs
             # Use only lowest level
+            t.cuda.empty_cache()
             decoder, x_quantised = self.decoders[start_level], xs_quantised[0:1]
             x_out = decoder(x_quantised, all_levels=False)
             del xs_quantised
