@@ -129,7 +129,7 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
 # Generate ancestral samples given a list of artists and genres
 def ancestral_sample(labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors)))
-    zs = [t.zeros(hps.n_samples,0,dtype=t.long, device='cuda') for _ in range(len(priors))]
+    zs = [t.zeros(hps.n_samples,0,dtype=t.long, device='cpu') for _ in range(len(priors))]
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
@@ -142,6 +142,11 @@ def continue_sample(zs, labels, sampling_kwargs, priors, hps):
 # Upsample given already generated upper-level codes
 def upsample(zs, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors) - 1))
+    
+    # force all priors back to cpu before doing standard upsampling
+    for level in reversed(sample_levels):
+        priors[level] = priors[level].cpu()
+        
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
 
