@@ -144,8 +144,9 @@ def upsample(zs, labels, sampling_kwargs, priors, hps):
     sample_levels = list(range(len(priors) - 1))
     
     # force all priors back to cpu before doing standard upsampling
-    for level in reversed(sample_levels):
-        priors[level] = priors[level].cpu()
+    for key, level in enumerate(reversed(sample_levels)):
+        if key != 0:
+            priors[level] = priors[level].cpu()
         
     zs = _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps)
     return zs
