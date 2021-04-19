@@ -108,7 +108,9 @@ def _sample(zs, labels, sampling_kwargs, priors, sample_levels, hps):
         hop_length = int(hps.hop_fraction[level]*prior.n_ctx)
         zs = sample_level(zs, labels[level], sampling_kwargs[level], level, prior, total_length, hop_length, hps)
 
-        prior.cpu()
+        # yeah... that aint gonna fly at 12gb ram and 15gb model
+        if level != 2:
+            prior.cpu()
         empty_cache()
 
         # Decode sample
