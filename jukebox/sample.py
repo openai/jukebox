@@ -32,7 +32,8 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     n_samples = hps.n_samples
     n_ctx = prior.n_ctx
     end = start + n_ctx
-
+    
+    zs = [ z.cpu() for z in zs ] # force tokens onto ram incase it was created externally
     # get z already sampled at current level
     z = zs[level][:,start:end].to(prior.device)
 
