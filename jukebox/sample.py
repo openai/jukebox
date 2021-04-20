@@ -35,7 +35,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     
     zs = [ z.cpu() for z in zs ] # force tokens onto ram incase it was created externally
     # get z already sampled at current level
-    z = zs[level][:,start:end].to(prior.device)
+    z = zs[level][:,start:end].cuda()
 
     if 'sample_tokens' in sampling_kwargs:
         # Support sampling a window shorter than n_ctx
@@ -55,7 +55,7 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     
     if z_conds != None:
         for k in range(len(z_conds)):
-            z_conds[k] = z_conds[k].to(prior.device)
+            z_conds[k] = z_conds[k].cuda()
 
     # set y offset, sample_length and lyrics tokens
     y = prior.get_y(labels, start)
