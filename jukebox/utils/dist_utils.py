@@ -47,6 +47,20 @@ def setup_dist_from_mpi(
     else:
         use_cuda = torch.cuda.is_available()
         print(f'Using cuda {use_cuda}')
+        print()
+        print('Welcome to jukebox-opt, a system ram optimized version of jukebox.')
+        print('For most notebooks/enviroments this acts as a mostly drop in replacement.')
+        print()
+        print('I say mostly because most notebooks/enviroments tend to load the tokens (zs)')
+        print('onto the gpu when i want them on the cpu to allow for longer songs, my code')
+        print('will put it back once loaded from a checkpoint, if the song is to longer than normal')
+        print('when loading it will use too much gpu memory and probably error out later in')
+        print("generation. To fix this, go through your notebook and change all 'cuda' to 'cpu'")
+        print('and all .cuda() to .cpu() for the tokens (zs).')
+        print()
+        print("Example; change \"zs = t.load(blablabla, location='cuda')\" to \"zs = t.load(blablabla, location='cpu')\"")
+        print('Example; change "zs = [ z.cuda() for z in zs ]" to "zs = [ z.cpu() for z in zs ]"')
+        print('Example; change "zs[blabla].cuda()" to "zs[blabla].cpu()"')
 
         mpi_rank = 0
         local_rank = 0
