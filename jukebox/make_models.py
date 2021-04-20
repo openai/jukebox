@@ -17,6 +17,7 @@ from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 import fire
 
 from jukebox.custom import custom_load
+import glob
 
 MODELS = {
     '5b': ("vqvae", "upsampler_level_0", "upsampler_level_1", "prior_5b"),
@@ -91,6 +92,11 @@ def restore_model(hps, model, checkpoint_path):
         model.load_state_dict(checkpoint['model'])
         if 'step' in checkpoint: model.step = checkpoint['step']
         del checkpoint
+        lst = glob.glob('*.bint')
+        for file in lst:
+            try:
+                os.remove(file)
+            except Exception: print('cant remove .bint file')
 
 def restore_opt(opt, shd, checkpoint_path):
     if not checkpoint_path:
