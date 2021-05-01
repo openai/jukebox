@@ -98,19 +98,33 @@ class VQVAE(nn.Module):
         x = x.permute(0,2,1)
         return x
 
-    def _decode(self, zs, start_level=0, end_level=None):
+    def _decode(self, zz, start_level=0, end_level=None):
         # Decode
         if end_level is None:
             end_level = self.levels
-        assert len(zs) == end_level - start_level
-        xs_quantised = self.bottleneck.decode(zs, start_level=start_level, end_level=end_level)
-        assert len(xs_quantised) == end_level - start_level
-
-        # Use only lowest level
-        decoder, x_quantised = self.decoders[start_level], xs_quantised[0:1]
-        x_out = decoder(x_quantised, all_levels=False)
-        x_out = self.postprocess(x_out)
-        return x_out
+        
+        bs_chunks = ((zz[0].shape[1] * [8,32*2,128*4][start_level] - 1) // (60 * 1 * 44100)) + 1# 1 minute segments for level 0, 30 seconds chunks for level 1, and 15 second chunks for level 2
+        z_c = [t.chunk(z, bs_chunks, dim=1) for z in zz]
+        outs = t.zeros((zz[0].shape[0], 0, 1), dtype=t.float16)
+        
+        for i in range(bs_chunks):
+            t.cuda.empty_cache()
+            zs = [z_c[k][i].cuda() for k in range(len(z_c))]
+            assert len(zs) == end_level - start_level
+            xs_quantised = self.bottleneck.decode(zs, start_level=start_level, end_level=end_level)
+            assert len(xs_quantised) == end_level - start_level
+            del zs
+            # Use only lowest level
+            t.cuda.empty_cache()
+            decoder, x_quantised = self.decoders[start_level], xs_quantised[0:1]
+            x_out = decoder(x_quantised, all_levels=False)
+            del xs_quantised
+            del x_quantised
+            xx_out = self.postprocess(x_out).cpu()
+            del x_out
+            outs = t.cat((outs, xx_out), dim=1)
+            del xx_out
+        return outs
 
     def decode(self, zs, start_level=0, end_level=None, bs_chunks=1):
         z_chunks = [t.chunk(z, bs_chunks, dim=0) for z in zs]
@@ -121,18 +135,32 @@ class VQVAE(nn.Module):
             x_outs.append(x_out)
         return t.cat(x_outs, dim=0)
 
-    def _encode(self, x, start_level=0, end_level=None):
+    def _encode(self, xx, start_level=0, end_level=None):
         # Encode
         if end_level is None:
             end_level = self.levels
-        x_in = self.preprocess(x)
-        xs = []
-        for level in range(self.levels):
-            encoder = self.encoders[level]
-            x_out = encoder(x_in)
-            xs.append(x_out[-1])
-        zs = self.bottleneck.encode(xs)
-        return zs[start_level:end_level]
+            
+        bs_chunks = ((xx.shape[1] - 1) // (60 * 1 * 44100)) + 1 # 1 minute segments encode
+        x_c = t.chunk(xx, bs_chunks, dim=1)
+        outs = [t.zeros((xx.shape[0], 0), dtype=int) for i in range(self.levels)]
+        
+        for x in x_c:
+            t.cuda.empty_cache()
+            x_in = self.preprocess(x).cuda()
+            xs = []
+            for level in range(self.levels):
+                encoder = self.encoders[level]
+                x_out = encoder(x_in)
+                xs.append(x_out[-1])
+            del x_in
+            zs = self.bottleneck.encode(xs)
+            del xs
+            zs = [ z.cpu() for z in zs ]
+            for i in range(self.levels):
+                outs[i] = t.cat((outs[i], zs[i]), dim=1)
+            del zs
+        
+        return outs[start_level:end_level]
 
     def encode(self, x, start_level=0, end_level=None, bs_chunks=1):
         x_chunks = t.chunk(x, bs_chunks, dim=0)

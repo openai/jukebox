@@ -1,3 +1,8 @@
+# Jukebox-opt
+Jukebox-opt is the standard archived code for jukebox with a few memory and speed optimizations
+
+following is the original readme;
+
 **Status:** Archive (code is provided as-is, no updates expected)
 
 # Jukebox
