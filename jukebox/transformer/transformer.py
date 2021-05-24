@@ -10,6 +10,8 @@ from jukebox.utils.checkpoint import checkpoint
 
 from jukebox.transformer.ops import _convert_conv_weights_to_fp16
 
+from tqdm import tqdm
+
 def _convert_mlp_traced(l):
     if isinstance(l, ResAttnBlock):
         l.mlp = t.jit.trace(l.mlp, t.randn(1, 1, l.n_in).cuda())
@@ -140,8 +142,7 @@ class Transformer(nn.Module):
 
         self.checkpoint_res = checkpoint_res
         self._attn_mods = nn.ModuleList()
-        for d in range(n_depth):
-            print(d)
+        for d in tqdm(range(n_depth)):
             self._attn_mods.append(attn_block(d).to(device))
             self.apply(_convert_conv_weights_to_fp16)
         self.ws = []
