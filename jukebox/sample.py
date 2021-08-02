@@ -13,6 +13,8 @@ from jukebox.utils.sample_utils import split_batch, get_starts
 from jukebox.utils.dist_utils import print_once
 import fire
 
+par_chunks = 16
+
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):
     z = zs[level]
@@ -87,9 +89,31 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 # Sample total_length tokens at level=level with hop_length=hop_length
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
     print_once(f"Sampling level {level}")
+    
+    
     if total_length >= prior.n_ctx:
-        for start in get_starts(total_length, prior.n_ctx, hop_length):
-            zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+        if hps.hop_fraction[level] == 1 and level != hps.levels - 1:
+            print('hop_fraction 1 detected, enabling speed upsampling')
+            print('thank me later, -MichaelsLab')
+            # to speed up sampling we simply break up the batches and paralellize within them as new batches
+            hop_length *= par_chunks
+            
+            for start in range(0, total_length, hop_length):
+                batches = []
+                for batch in range(hps.n_samples):
+                    tz = [t.zeros((0,)) for _ in range(hps.levels)]
+
+                    tz[level + 1] = zs[level + 1][batch, start:start + hop_length // 4].reshape((-1, hps.n_ctx // 4)) #ToDo: change these 4s to hps.downcond or whatever its named
+                    tz[level] = t.zeros((tz[level + 1].shape[0], 0), dtype=zs[level].dtype)
+
+                    tz = sample_single_window(tz, labels, sampling_kwargs, level, prior, 0, hps)
+                    
+                    batches.append(tz[level].reshape((-1,)))
+                zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
+                
+        else:
+            for start in get_starts(total_length, prior.n_ctx, hop_length):
+                zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
     else:
         zs = sample_partial_window(zs, labels, sampling_kwargs, level, prior, total_length, hps)
     return zs
