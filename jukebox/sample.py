@@ -99,7 +99,7 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
             
             for start in range(0, total_length, hop_length):
                 current_tokens = zs[level][0, start : start + hop_length].shape[0]
-                if current_tokens < hop_length:
+                if current_tokens < 4 * zs[level + 1][0, start // 4 : (start + hop_length) // 4].shape[0]:
                     batches = []
                     for batch in range(hps.n_samples):
                         tz = [t.zeros((0,)) for _ in range(hps.levels)]
