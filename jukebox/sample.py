@@ -108,17 +108,18 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
                         tz[level + 1] = tz[level + 1][:tz[level + 1].shape[0] - (tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
                         new_batch = tz[level + 1].shape[0]
                         tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
+                        if new_batch > 0:
+                            new_labels = {
+                                'info': [labels['info'][batch]] * new_batch,
+                                'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
+                            }
 
-                        new_labels = {
-                            'info': [labels['info'][batch]] * new_batch,
-                            'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
-                        }
+                            sampling_kwargs['max_batch_size'] = batch_size
+                            tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
 
-                        sampling_kwargs['max_batch_size'] = batch_size
-                        tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
-
-                        batches.append(tz[level].reshape((-1,)[current_tokens:]))
-                    zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
+                            batches.append(tz[level].reshape((-1,)[current_tokens:]))
+                    if new_batch > 0:
+                        zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
                 
         else:
             for start in get_starts(total_length, prior.n_ctx, hop_length):
