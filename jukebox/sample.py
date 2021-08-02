@@ -105,7 +105,7 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
                         tz = [t.zeros((0,)) for _ in range(hps.levels)]
 
                         tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4].reshape((-1,)) #ToDo: change these 4s to hps.downcond or whatever its named
-                        tz[level + 1] = tz[level + 1][:-(tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
+                        tz[level + 1] = tz[level + 1][:tz[level + 1].shape[0] - (tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
                         new_batch = tz[level + 1].shape[0]
                         tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
 
