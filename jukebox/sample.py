@@ -98,25 +98,27 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
             hop_length *= batch_size
             
             for start in range(0, total_length, hop_length):
-                batches = []
-                for batch in range(hps.n_samples):
-                    tz = [t.zeros((0,)) for _ in range(hps.levels)]
+                current_tokens = zs[level][0, start : start + hop_length].shape[1]
+                if current_tokens < hop_length:
+                    batches = []
+                    for batch in range(hps.n_samples):
+                        tz = [t.zeros((0,)) for _ in range(hps.levels)]
 
-                    tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4].reshape((-1,)) #ToDo: change these 4s to hps.downcond or whatever its named
-                    tz[level + 1] = tz[level + 1][:-(tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
-                    new_batch = tz[level + 1].shape[0]
-                    tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
-                    
-                    new_labels = {
-                        'info': [labels['info'][batch]] * new_batch,
-                        'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
-                    }
-                    
-                    sampling_kwargs['max_batch_size'] = batch_size
-                    tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
-                    
-                    batches.append(tz[level].reshape((-1,)))
-                zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
+                        tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4].reshape((-1,)) #ToDo: change these 4s to hps.downcond or whatever its named
+                        tz[level + 1] = tz[level + 1][:-(tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
+                        new_batch = tz[level + 1].shape[0]
+                        tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
+
+                        new_labels = {
+                            'info': [labels['info'][batch]] * new_batch,
+                            'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
+                        }
+
+                        sampling_kwargs['max_batch_size'] = batch_size
+                        tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
+
+                        batches.append(tz[level].reshape((-1,)[current_tokens:]))
+                    zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
                 
         else:
             for start in get_starts(total_length, prior.n_ctx, hop_length):
