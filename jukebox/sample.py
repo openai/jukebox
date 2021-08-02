@@ -13,8 +13,6 @@ from jukebox.utils.sample_utils import split_batch, get_starts
 from jukebox.utils.dist_utils import print_once
 import fire
 
-par_chunks = 16
-
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):
     z = zs[level]
@@ -96,7 +94,8 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
             print('hop_fraction 1 detected, enabling speed upsampling')
             print('thank me later, -MichaelsLab')
             # to speed up sampling we simply break up the batches and paralellize within them as new batches
-            hop_length *= par_chunks
+            batch_size = sampling_kwargs['max_batch_size']
+            hop_length *= batch_size
             
             for start in range(0, total_length, hop_length):
                 batches = []
@@ -107,7 +106,8 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
                     tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4].reshape((-1, prior.n_ctx // 4)) #ToDo: change these 4s to hps.downcond or whatever its named
                     new_batch = tz[level + 1].shape[0]
                     tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
-
+                    
+                    sampling_kwargs['max_batch_size'] = batch_size
                     tz = sample_single_window(tz, [label] * new_batch, sampling_kwargs, level, prior, 0, hps)
                     
                     batches.append(tz[level].reshape((-1,)))
