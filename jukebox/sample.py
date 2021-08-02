@@ -108,7 +108,7 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
                     tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
                     
                     sampling_kwargs['max_batch_size'] = batch_size
-                    tz = sample_single_window(tz, [[label] * new_batch if level == _ else None for range(hps.levels)], sampling_kwargs, level, prior, 0, hps)
+                    tz = sample_single_window(tz, [[label] * new_batch if level == _ else None for _ in range(hps.levels)], sampling_kwargs, level, prior, 0, hps)
                     
                     batches.append(tz[level].reshape((-1,)))
                 zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
