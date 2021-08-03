@@ -117,7 +117,7 @@ def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_le
                             sampling_kwargs['max_batch_size'] = batch_size
                             tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
 
-                            batches.append(tz[level].reshape((-1,)[current_tokens:]))
+                            batches.append(tz[level].reshape((-1,))[current_tokens:])
                     if new_batch > 0:
                         zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
                 
