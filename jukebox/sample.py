@@ -18,17 +18,20 @@ def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_s
     z = zs[level]
     n_ctx = prior.n_ctx
     current_tokens = z.shape[1]
-    if current_tokens < n_ctx - tokens_to_sample:
+    if current_tokens < n_ctx * sampling_kwargs['max_batch_size'] - tokens_to_sample:
         sampling_kwargs['sample_tokens'] = current_tokens + tokens_to_sample
         start = 0
     else:
         sampling_kwargs['sample_tokens'] = n_ctx
-        start = current_tokens - n_ctx + tokens_to_sample
+        start = current_tokens - n_ctx * sampling_kwargs['max_batch_size'] + tokens_to_sample
 
     return sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
 
 # blah, im tierd, how spell
 def _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
+    batch_size = sampling_kwargs['max_batch_size']
+    hop_length = int(hps.hop_fraction[level] * prior.n_ctx) * batch_size
+    
     batches = []
     for batch in range(hps.n_samples):
         tz = [t.zeros((0,)) for _ in range(hps.levels)]
