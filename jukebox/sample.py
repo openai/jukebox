@@ -27,8 +27,50 @@ def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_s
 
     return sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
 
+# blah, im tierd, how spell
+def _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
+    batches = []
+    for batch in range(hps.n_samples):
+        tz = [t.zeros((0,)) for _ in range(hps.levels)]
+
+        #ToDo: change these 4s to hps.downcond or whatever its named
+        tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4]
+        #tz[level + 1] = tz[level + 1][:tz[level + 1].shape[0] - (tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
+
+        current_tokens = zs[level][batch, start : start + hop_length].shape[0]
+        overflow_batches = current_tokens // (prior.n_ctx)
+        
+        tz[level + 1] = tz[level + 1][overflow_batches * (prior.n_ctx // 4):].reshape((-1, prior.n_ctx // 4))
+        new_batch = tz[level + 1].shape[0]
+
+        print(start, new_batch)
+
+        if new_batch > 0:
+            tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
+            
+            new_labels = {
+                'info': [labels['info'][batch]] * new_batch,
+                'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
+            }
+            
+            sampling_kwargs['max_batch_size'] = batch_size
+            tz = _sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
+
+            batches.append(tz[level].reshape((-1,))[current_tokens + overflow_batches * prior.n_ctx:])
+    if new_batch > 0 :
+        zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
+    return zs
+
+# !Wrapper/Shadow function!
 # Sample a single window of length=n_ctx at position=start on level=level
 def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
+    if hps.hop_fraction[level] == 1 and level != hps.levels - 1:
+        return _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+    else:
+        return _sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+
+# Sample a single window of length=n_ctx at position=start on level=level
+def _sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     n_samples = hps.n_samples
     n_ctx = prior.n_ctx
     end = start + n_ctx
@@ -88,42 +130,18 @@ def sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
 def sample_level(zs, labels, sampling_kwargs, level, prior, total_length, hop_length, hps):
     print_once(f"Sampling level {level}")
     
+    if hps.hop_fraction[level] == 1 and level != hps.levels - 1:
+        print('hop_fraction 1 detected, enabling speed upsampling')
+        print('thank me later, -MichaelsLab')
+        # to speed up sampling we simply break up the batches and paralellize within them as new batches
+        batch_size = sampling_kwargs['max_batch_size']
+        hop_length *= batch_size
+    else:
+        batch_size = 1
     
     if total_length >= prior.n_ctx:
-        if hps.hop_fraction[level] == 1 and level != hps.levels - 1:
-            print('hop_fraction 1 detected, enabling speed upsampling')
-            print('thank me later, -MichaelsLab')
-            # to speed up sampling we simply break up the batches and paralellize within them as new batches
-            batch_size = sampling_kwargs['max_batch_size']
-            hop_length *= batch_size
-            
-            for start in range(0, total_length, hop_length):
-                current_tokens = zs[level][0, start : start + hop_length].shape[0]
-                if current_tokens < 4 * zs[level + 1][0, start // 4 : (start + hop_length) // 4].shape[0]:
-                    batches = []
-                    for batch in range(hps.n_samples):
-                        tz = [t.zeros((0,)) for _ in range(hps.levels)]
-
-                        tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4].reshape((-1,)) #ToDo: change these 4s to hps.downcond or whatever its named
-                        tz[level + 1] = tz[level + 1][:tz[level + 1].shape[0] - (tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
-                        new_batch = tz[level + 1].shape[0]
-                        tz[level] = t.zeros((new_batch, 0), dtype=zs[level].dtype)
-                        if new_batch > 0:
-                            new_labels = {
-                                'info': [labels['info'][batch]] * new_batch,
-                                'y': t.stack([labels['y'][batch, :] for _ in range(new_batch)], dim=0)
-                            }
-
-                            sampling_kwargs['max_batch_size'] = batch_size
-                            tz = sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
-
-                            batches.append(tz[level].reshape((-1,))[current_tokens:])
-                    if new_batch > 0:
-                        zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
-                
-        else:
-            for start in get_starts(total_length, prior.n_ctx, hop_length):
-                zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
+        for start in get_starts(total_length, prior.n_ctx * batch_size, hop_length):
+            zs = sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
     else:
         zs = sample_partial_window(zs, labels, sampling_kwargs, level, prior, total_length, hps)
     return zs
