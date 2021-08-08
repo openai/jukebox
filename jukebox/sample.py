@@ -15,15 +15,20 @@ import fire
 
 # Sample a partial window of length<n_ctx with tokens_to_sample new tokens on level=level
 def sample_partial_window(zs, labels, sampling_kwargs, level, prior, tokens_to_sample, hps):
+    if hps.hop_fraction[level] == 1 and level != hps.levels - 1:
+        n_ctx = prior.n_ctx * sampling_kwargs['max_batch_size']
+    else:
+        n_ctx = prior.n_ctx
+        
     z = zs[level]
-    n_ctx = prior.n_ctx
     current_tokens = z.shape[1]
-    if current_tokens < n_ctx * sampling_kwargs['max_batch_size'] - tokens_to_sample:
+
+    if current_tokens < n_ctx - tokens_to_sample:
         sampling_kwargs['sample_tokens'] = current_tokens + tokens_to_sample
         start = 0
     else:
         sampling_kwargs['sample_tokens'] = n_ctx
-        start = current_tokens - n_ctx * sampling_kwargs['max_batch_size'] + tokens_to_sample
+        start = current_tokens - n_ctx + tokens_to_sample
 
     return sample_single_window(zs, labels, sampling_kwargs, level, prior, start, hps)
 
