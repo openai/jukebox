@@ -64,7 +64,7 @@ def _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
             sampling_kwargs['max_batch_size'] = batch_size
             tz = _sample_single_window(tz, new_labels, sampling_kwargs, level, prior, 0, hps)
 
-            batches.append(tz[level].reshape((-1,))[current_tokens + overflow_batches * prior.n_ctx:])
+            batches.append(tz[level].reshape((-1,))[current_tokens - overflow_batches * prior.n_ctx:])
     if new_batch > 0 :
         zs[level] = t.cat((zs[level], t.stack(batches, dim=0)), dim=1)
     return zs
