@@ -41,11 +41,11 @@ def _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     for batch in range(hps.n_samples):
         tz = [t.zeros((0,)) for _ in range(hps.levels)]
 
-        current_tokens = zs[level][batch, start : start + hop_length].shape[0]
+        current_tokens = zs[level][batch, max(0, start) : start + hop_length].shape[0]
         overflow_batches = current_tokens // (prior.n_ctx)
         
         #ToDo: change these 4s to hps.downcond or whatever its named
-        tz[level + 1] = zs[level + 1][batch, start // 4 : (start + hop_length) // 4]
+        tz[level + 1] = zs[level + 1][batch, max(0, start // 4) : (start + hop_length) // 4]
         
         # cut out already fully generated batches, and clip to multiple of context if too short
         tz[level + 1] = tz[level + 1][overflow_batches * (prior.n_ctx // 4) : tz[level + 1].shape[0] - (tz[level + 1].shape[0] % (prior.n_ctx // 4))].reshape((-1, prior.n_ctx // 4))
