@@ -37,6 +37,11 @@ def _speed_single_window(zs, labels, sampling_kwargs, level, prior, start, hps):
     batch_size = sampling_kwargs['max_batch_size']
     hop_length = int(hps.hop_fraction[level] * prior.n_ctx) * batch_size
     
+    # ensure full context is generated when in speed mode
+    # _sample_single_window will assume full context if sample_tokens don't exist in sampling_kwargs
+    if 'sample_tokens' in sampling_kwargs:
+        del sampling_kwargs['sample_tokens']
+    
     batches = []
     for batch in range(hps.n_samples):
         tz = [t.zeros((0,)) for _ in range(hps.levels)]
